@@ -1,0 +1,7 @@
+express
+body-parser
+request
+path
+apiai
+http
+bluebird

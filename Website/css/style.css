@@ -1,0 +1,83 @@
+.tabcontent{
+  display: none;
+}
+
+.removeButton{
+  display:block;
+  position:absolute;
+  width:36px;
+  height:36px;
+  top:0;
+  right:0;
+  font-size:20px;
+  color:#606060;
+  text-align:center;
+  text-decoration:none;
+  border:2px solid #ededed;
+  border-radius:4px;
+  line-height:33px
+}
+
+.removeButton:hover{color:#ef0568}
+#panel {
+  position: center;
+ top: 100px;
+ left: 50%;
+ z-index: 5;
+ background-color: #fff;
+ padding: 5px;
+ border: 1px solid #999;
+ text-align: center;
+}
+
+
+#panel, .panel {
+ font-family: 'Roboto','sans-serif';
+ /*line-height: 50px;*/
+ padding-left: 70px;
+}
+
+#panel select, #panel input, .panel select, .panel input {
+ font-size: 70px;
+}
+
+#panel select, .panel select {
+ width: 70%;
+}
+
+#panel i, .panel i {
+  font-size: 12px;
+}
+
+#input-outer {
+  height: relative;
+  width: relative;
+  border: 1px #e7e7e7 solid;
+  border-radius: 20px;
+}
+#input-outer input {
+  height: 2em;
+  width: 80%;
+  border: 0px;
+  outline: none;
+  margin: 0 0 0 10px;
+  border-radius: 20px;
+  color: #666;
+}
+#clear {
+  position: relative;
+  float: right;
+  height: 20px;
+  width: 20px;
+  top: 5px;
+  right: 5px;
+  border-radius: 20px;
+  background: #f1f1f1;
+  color: white;
+  font-weight: bold;
+  text-align: center;
+  cursor: pointer;
+}
+#clear:hover {
+  background: #77cde3;
+}

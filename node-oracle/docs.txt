@@ -1,0 +1,10 @@
+wget https://repo.continuum.io/archive/Anaconda2-5.0.0.1-Linux-x86_64.sh
+bash ./Anaconda2-5.0.0.1-Linux-x86_64.sh
+
+conda install -c conda-forge bottle
+pip install razorpay
+pip install googlemaps 
+conda install -c conda-forge geopy
+
+sudo yum install gcc
+wget http://download.redis.io/redis-stable.tar.gz && tar xvzf redis-stable.tar.gz && cd redis-stable && make

@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+
+
+<head>
+  <script src="js/getMenu.js"></script>
+  <meta charset="utf-8">
+  <title>Indian Saffron</title>
+  <script src="js/vars.js"></script>
+  <!--Mobile Specific Meta Tag-->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <link href="css/style.css" rel="stylesheet" type="text/css">
+  <!--Favicon-->
+  <link rel="shortcut icon" href="favicon.ico" type="image/x-icon">
+  <link rel="icon" href="favicon.ico" type="image/x-icon">
+  <!-- Google Material Icons -->
+  <link href="css/vendor/material-icons.min.css" rel="stylesheet" media="screen">
+  <!-- Brand Icons -->
+  <link href="css/vendor/socicon.min.css" rel="stylesheet" media="screen">
+  <!-- Bootstrap -->
+  <link href="css/vendor/bootstrap.min.css" rel="stylesheet" media="screen">
+  <!-- Theme Styles -->
+  <link href="css/theme.min.css" rel="stylesheet" media="screen">
+  <link href="css/style.css" rel="stylesheet" media="screen">
+  <!-- Page Preloading -->
+  <script src="js/vendor/page-preloading.js"></script>
+  <!-- Modernizr -->
+  <script src="js/vendor/jquery-2.1.4.min.js"></script>
+  <script src="js/vendor/modernizr.custom.js"></script>
+  <script src="js/loadData.js"></script>
+</head>
+
+<!-- Body -->
+<body class="page-preloading">
+
+  <!-- Page Pre-Loader -->
+  <div class="page-preloader">
+    <div class="preloader">
+      <img src="img/preloader.gif" alt="Preloader">
+    </div>
+  </div><!-- .page-preloader -->
+
+  <!-- Page Wrapper -->
+  <div class="page-wrapper">
+
+    <!-- Navbar -->
+    <header class="navbar">
+
+      <!-- Navbar Header -->
+      <div class="navbar-header">
+
+        <!-- Site Logo -->
+        <a href="#top" class="site-logo visible-desktop" onclick="openCourse(event, 'course1_tab')">
+          <span>Indian</span><span class="text-gray">Saffron</span>
+        </a><!-- site-logo.visible-desktop -->
+        <a href="#top" class="site-logo visible-mobile" onclick="openCourse(event, 'course1_tab')">
+          <span>Indian</span>Saffron
+        </a><!-- site-logo.visible-mobile -->
+
+        <!-- Mobile Menu Toggle -->
+        <a href="#" id="menuToggle" onclick="menuToggle123()">
+          <i>
+            <span onclick="menuToggle123()">CART - </span>
+            <span id="item_qty" class="count">0</span>
+          </i>
+        </a>
+      </div><!-- .navbar-header -->
+
+      <!-- Mobile Menu Wrapper -->
+      <div class="mobile-menu-wrapper">
+        <!-- Toolbar -->
+        <div class="toolbar">
+          <div class="cart-btn">
+            <a href="#" onclick="getData2(); openCourse(event, 'cart')">
+              <i>
+                <span class="material-icons shopping_basket"></span>
+                <!---span id="item_qty" class="count">0</span--->
+              </i>
+            </a>
+          </div><!-- .cart-btn -->
+        </div><!-- .toolbar -->
+
+        <!-- Main Navigation -->
+        <nav class="main-navigation">
+          <ul class="menu">
+            <x id="courseDisplay"></x>
+          </ul><!-- .menu -->
+        </nav><!-- .main-navigation -->
+        </div><!-- .mobile-menu-wrapper -->
+        </header><!-- .navbar -->
+        <main id="top" class="content-wrapper">
+
+          <!--section class="hero-slider" data-loop="true" data-autoplay="true" data-interval="7000">
+            <div class="inner">
+              <div class="slide" style="background-image: url(img/hero-slider/01.jpg);">
+                <div class="container">
+                  <div class="absolute from-top" style="top: 13%;">
+                    <span class="h1 hidden-xs">BABA DA DHABA<br>BRINGS TO YOU<br>LIP SMACKING<br>DHABA FLAVOURS</span>
+                  </div>
+                  <div class="absolute text-right from-bottom" style="bottom: 13%; right: 15px;">
+                    <a href="#menu" class="btn btn-primary btn-with-icon-right waves-effect waves-light space-top-none">
+                      Order Now!
+                      <i class="material-icons arrow_forward"></i>
+                    </a>
+                  </div>
+                </div>
+              </div><!- .slide
+              <div class="slide" style="background-image: url(img/hero-slider/02.jpg);">
+                <div class="container text-center padding-top-3x">
+                  <span class="h2 from-bottom"><strong><font color="white">Delicious Food For Every Mood</font></strong></span><br>
+                </div>
+              </div><!- .slide
+              <div class="slide" style="background-image: url(img/hero-slider/03.jpg);">
+                <div class="container padding-top-3x">
+                  <span class="h1 space-top from-left"><font color="white">Authentic North Indian Favour</font></span><br>
+                </div>
+              </div><! .slide
+            </div><!- .inner
+          </section><!- .hero-slider -->
+
+          <!-- Content Wide -->
+          <section class="container-fluid padding-top">
+
+            <!-- Filters Bar -->
+            <section class="container padding-top">
+              <div id="menu" class="filters-bar space-top-half">
+                <div class="column">
+                  <!-- Nav Filters -->
+                  <ul class="nav-filters">
+                    <div id="input-outer">
+                      <input id="search_bar" type="text" onkeyup="searchDish()" placeholder="Search">
+                      <div id="clear">&#9747;</div>
+                    </div>
+                    <!--input id="search_bar" type="search" class="form-control clearable" onkeyup="searchDish()" placeholder="Search"-->
+                  </ul><!-- .nav-filters -->
+                </div><!-- .column -->
+                <!---div class="column">
+                  <a href="#" id="vegToggle" onclick="vegToggleMenu()" class="btn btn-pill btn-sm btn-info waves-effect waves-light">All Dishes</a>
+                </div--->
+                <div class="column">
+                  <a href="#filters" class="filters-toggle active" data-toggle="filters">
+                    <i class="material-icons filter_list"></i>
+                    See Courses
+                  </a>
+                </div>
+              </div><!-- .filters-bar -->
+              <div class="row filters">
+                <div class="col-xs-12 filters-pane" id="filters">
+                  <div class="row">
+                    <div id="courseDisplay2" class="widget widget-tags">
+                    </div><!-- .widget.widget-price -->
+                  </div><!-- .row -->
+                </div><!-- .col-xs-12.filters-pane#filters -->
+              </div><!-- .row.filters -->
+            </section><!-- .container -->
+
+            <!-- Shop Catalog -->
+            <section class="container padding-bottom-3x">
+              <section id="dishDisplay"></section>
+              <div class="tabcontent" id="search"></div>
+              <div id="cart" class="tabcontent">
+
+                <h1 class="space-top-half">Food Basket</h1>
+                <div class="row padding-top">
+
+                  <!-- Cart -->
+                  <div class="col-sm-8 padding-bottom-2x">
+                    <p class="text-sm">
+                      <span id="item_qty2" class="text-gray">Currently 0 items in cart</span>
+                    </p>
+                    <div class="shopping-cart">
+                      <section id='display'></section>
+                    </div><!-- .shopping-cart -->
+                 </div><!-- .col-sm-8 -->
+
+                  <!-- Sidebar -->
+                  <div class="col-md-3 col-md-offset-1 col-sm-4 padding-bottom-2x">
+                    <aside>
+                      <h3 class="toolbar-title">Cart subtotal:</h3>
+                      <h4 id="amt" class="amount">&#8377;0</h4>
+                      <p class="text-sm text-gray">* Note: This amount does not include taxes and delivery charges. You will be given the final amount on checkout.</p>
+                      <a onclick="finalSend(); checkout();" class="btn btn-primary btn-block waves-effect waves-light space-top-none">Checkout</a>
+                    </aside>
+                  </div><!-- .col-md-3.col-sm-4 -->
+                </div><!-- .row -->
+              </div><!-- .container -->
+
+            </section>
+
+
+          </section><!-- .container-fluid -->
+
+          <!-- Footer -->
+          <footer class="footer">
+            <div class="column">
+              <!-- Scroll To Top Button -->
+              <div class="scroll-to-top-btn"><i class="material-icons trending_flat"></i></div>
+            </div><!-- .column -->
+          </footer><!-- .footer -->
+        </main><!-- .content-wrapper -->
+
+      </div><!-- .page-wrapper -->
+
+      <!-- JavaScript (jQuery) libraries, plugins and custom scripts -->
+      <script src="js/tabs.js"></script>
+      <script src="js/sendingData.js"></script>
+      <script src="js/getCart.js"></script>
+      <script>
+        window.onload(getURL());
+        window.onload(getMenu());
+      </script>
+      <script src="js/vendor/bootstrap.min.js"></script>
+      <script src="js/vendor/smoothscroll.js"></script>
+      <script src="js/vendor/velocity.min.js"></script>
+      <script src="js/vendor/waves.min.js"></script>
+      <script src="js/vendor/icheck.min.js"></script>
+      <script src="js/vendor/owl.carousel.min.js"></script>
+      <script src="js/vendor/magnific-popup.min.js"></script>
+      <script src="js/getData.js"></script>
+      <script src="js/searchDish.js"></script>
+      <script src="js/scripts.js"></script>
+    </body><!-- <body> -->
+    </html>
