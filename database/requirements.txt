@@ -1,0 +1,11 @@
+bottle
+pandas
+gevent
+redis
+pprint
+googlemaps
+requests
+datetime
+razorpay
+geopy
+

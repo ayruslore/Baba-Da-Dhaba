@@ -1,0 +1,228 @@
+Amritsari Combo nonveg	90	
+Amritsari Combo veg	82	
+Amritsari Mini Combo nonveg	35	
+Amritsari Mini Combo veg	26	
+Assorted Veg Tikkis	16	
+B and W Chocolate Cake Eggless	24	
+Butter Naan	58	
+Chicken Biryani	53	
+Chicken Lababdar	98	
+Chicken Makhanwala	50	
+Chicken Tikka Roll	26	
+Coke	70	
+Dal Makhani	124	
+Dal Makhani Mini Combo	200	
+Dal Saath Salam	80	
+Diet Coke	22	
+Dilli Combo nonveg	30	
+Dilli Combo veg	23	
+Dilli Mini Combo nonveg	47	
+Dilli Mini Combo veg	11	
+Hariyali Chicken Kebab	38	
+Jeera Rice	50	
+Kashmiri Combo nonveg	8	
+Kashmiri Mini Combo nonveg	3	
+Kheer	40	
+Lassi salted	9	
+Lassi sweet	27	
+Lucknowi Combo veg	19	
+Lucknowi Mini Combo veg	11	
+Malai Chicken Kebab	81	
+Mutton Biryani	40	
+Mutton Rogan Josh	31	
+Mutton Seekh Kebab	23	
+Mutton Seekh Roll	3	
+Naan	70	
+Amritsari Combo nonveg	69	
+Amritsari Mini Combo nonveg	22	
+Dilli Combo nonveg	17	
+Dilli Mini Combo nonveg	28	
+Kashmiri Combo nonveg	4	
+Kashmiri Mini Combo nonveg	3	
+Onion Kulcha	24	
+Paneer Lababdar	64	
+Paneer Makhanwala	44	
+Paneer Tikka	35	
+Paneer Tikka Roll	48	
+Phirni	23	
+Plain Rice	33	
+Saagwala Paneer	19	
+Subzi Meloni	32	
+Lassi salted	4	
+Sprite 500 ml	21	
+Lassi sweet	7	
+Tandoori Roti	117	
+Tawa Roti	152	
+Amritsari Combo	veg 26	
+Amritsari Mini Combo veg	13	
+Dilli Combo	veg 29	
+Dilli Mini Combo veg	11	
+Lucknowi Combo veg	9	
+Lucknowi Mini Combo veg	3				
+Amritsari Combo nonveg	83
+Amritsari Combo veg	62
+Amritsari Mini Combo nonveg	43
+Amritsari Mini Combo veg	30
+Amritsari Mini Combo nonveg	44
+Amritsari Mini Combo veg	28
+Assorted Veg Tikkis	18
+B and W Chocolate Cake Eggless	32
+Chicken Biryani	50
+Chicken Lababdar	43
+Chicken Makhanwala	58
+Chicken Tikka Roll	36
+Coke 	16
+Coke 	9
+Dal Makhani	79
+Dal Makhani Mini Combo	125
+Dal Saath Salam	45
+Diet Coke 	14
+Dilli  Mini Combo veg	15
+Dilli Combo nonveg	68
+Dilli Combo veg	75
+Dilli Mini Combo nonveg	57
+Dilli Mini Combo veg	25
+Dilli Mini Combo nonveg	50
+Dilli Mini Combo veg	14
+Hariyali Chicken Kebab	29
+Jeera Rice	36
+Kashmiri Combo nonveg	15
+Kashmiri Mini Combo nonveg	8
+Kashmiri Mini Combo nonveg	11
+Kashmiri Mini Combo nonveg	3
+Kheer	23
+Lassi Salted	15
+Lassi Sweet	69
+Lucknowi Combo veg	32
+Lucknowi Mini Combo veg	17
+Lucknowi Mini Combo veg	12
+Malai Chicken Kebab	55
+Murgh Kali Mirch	19
+Murgh Tikka	18
+Mutton Biryani	31
+Mutton Rogan Josh	15
+Mutton Seekh Kebab	11
+Mutton Seekh Roll	11
+Naan	73
+Onion Kulcha	84
+Paneer Lababdar	48
+Paneer Makhanwala	20
+Paneer Tikka	21
+Paneer Tikka Roll	154
+Phirni	14
+Pindi Chole	40
+Pindi Chole Combo	64
+Saagwala Paneer	9
+Sprite 250 Ml	3
+Sprite 500 Ml  8
+Plain Rice	9
+Subzi Meloni	34
+Tandoori Roti	64
+Coke 5
+Wheat Tawa Roti	249	
+Amritsari Combo nonveg	4
+Amritsari Combo veg	2
+Amritsari Mini Combo nonveg	2
+Assorted Veg Tikkis	1
+B and W Chocolate Cake Eggless	9
+Hariyali Chicken Kebab	42
+Butter Naan	62
+Chicken Biryani	66
+Chicken Lababdar	137
+Chicken Makhanwala	92
+Chicken Tikka Roll	72
+Dal Makhani	202
+Dal Makhani Mini Combo	106
+Dal Saath Salam	57
+Dilli Combo nonveg	2
+B and W Chocolate Cake Eggless	21
+Hariyali Chicken Kebab	2
+Jeera Rice	53
+Kheer	31
+Lassi salted	74
+Lassi Sweet	1
+Malai Chicken Kebab	97
+Murgh Kali Mirch	25
+Mutton Biryani	30
+Mutton Rogan Josh	20
+Mutton Seekh Kebab	16
+Mutton Seekh Roll	18
+Naan	171
+Amritsari Combo nonveg	181
+Amritsari Mini Combo nonveg	119
+Dilli Combo nonveg	72
+Dilli Mini Combo nonveg	107
+Kashmiri Combo nonveg	12
+Kashmiri Mini Combo nonveg	15
+Onion Kulcha	97
+Paneer Lababdar	50
+Paneer Makhanwala	70
+Paneer Tikka	31
+Paneer Tikka Roll	35
+Phirni	27
+Pindi Chole	51
+Pindi Chole Combo	6
+Plain Rice	39
+Saagwala Paneer	34
+Subzi Meloni	52
+Tandoori Roti	198
+Tawa Roti	346
+Amritsari Combo veg	123
+Amritsari Mini Combo veg	61
+Assorted Veg Tikkis	32
+Dilli Combo veg	78
+Dilli Mini Combo veg	52
+Lucknowi Combo veg	21
+Lucknowi Mini Combo veg	31
+Wheat Tawa Roti	1
+Amritsari Mini Combo nonveg	3
+Amritsari Mini Combo veg	4
+Amritsari Mini Combo nonveg	8
+Amritsari Mini Combo veg	10
+Amritsari Combo nonveg	29
+Amritsari Combo veg	26
+Assorted Veg Tikkis	6
+B and W Chocolate Cake Eggless 	7
+Chicken Biryani	66
+Chicken Lababdar	23
+Chicken Makhanwala	13
+Chicken Tikka Roll	9
+Coke	18
+Dal Makhani	46
+Dal Makhani Mini Combo	16
+Dal Saath Salam	20
+Diet Coke 	6
+Dilli Mini Combo nonveg	5
+Dilli Mini Combo veg	4
+Dilli Mini Combo nonveg	9 
+Dilli Mini Combo veg	6
+Dilli Combo nonveg	19
+Dilli Combo veg	20
+Hariyali Chicken Kebab	9
+Jeera Rice	17
+Kashmiri Mini Combo nonveg	8
+Kashmiri Mini Combo nonveg	13
+Kashmiri Combo nonveg	8
+Kheer	6
+Lucknowi Mini Combo	veg 2
+Lucknowi Mini Combo	veg 2
+Lucknowi Combo veg	5
+Malai Chicken Kebab	14
+Mutton Biryani	7
+Mutton Rogan Josh	4
+Mutton Seekh Kebab	1
+Mutton Seekh Roll	3
+Naan	14
+Paneer Lababdar	17
+Paneer Makhanwala	11
+Saagwala Paneer	9
+Paneer Tikka	8
+Paneer Tikka Roll	5
+Phirni	6
+Lassi salted	5
+Sprite 500 Ml	9
+Plain Rice	9
+Subzi Meloni	9
+Lassi sweet	16
+Tandoori Roti	13
+Wheat Tawa Roti	89	
