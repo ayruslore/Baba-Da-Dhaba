@@ -11,7 +11,7 @@ var Promise = require("bluebird");
 var request_1 = Promise.promisifyAll(require("request"));
 var activelink ='http://35.154.196.70:5000/';
 var recommendationLink = 'http://35.154.196.70:7000/';
-let token = 'EAAEHWQB50JwBAPWmoFZCNZAwQ6YxYjByYlu2TO16VQvRcwaZCqDp0rUgCWQdCyPKt6Wi8v4c6MZABX3DZBmTUYh5I6rGM8MMbCFH5vlmXnJHZAh5oxuRaELFwZCLDKZA5xOGNJJ5vlCzCqhbcZCvRZAi84O0u5CZAftvVFZCzqCdsUpbswZDZD';
+let token = 'EAAEms8xEwDABALMxmOTzJGGjU8ZAwaG9W5RYAzhHUamxB7ixLrqwGrLvRUVDSQUiGO0FAOX8ZC78PDZBZBAVz2SF6XijsCa8l7WUGNRPgR1uOUOwSZBDXToqsSiiZCYibIgeurMTnq8Dc2v1RHShUNbXfUxaEaONHW11FtgpWeTwZDZD';
 
 
 // The rest of the code implements the routes for our Express server.
@@ -747,7 +747,7 @@ function makeJsonreceipt(title,quantity,price){
                 quantity : quantity,
                 price : price,
                 currency:"INR",
-                image_url:"http://genii.ai/activebots/Babadadhaba/img/db/isc_logo.jpg"
+                image_url:"http://genii.ai/activebots/Babadadhaba/img/db/bdd_logo.jpg"
                 }
         return elements;
 }
