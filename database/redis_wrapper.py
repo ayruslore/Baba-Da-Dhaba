@@ -11,7 +11,6 @@ from datetime import datetime
 import random
 import requests
 from pprint import pprint
-
 import redis_functions as rd
 from redis_functions import *
 app = bottle.app()
@@ -53,6 +52,9 @@ global orders_branch_K
 orders_branch_K={}
 global busy
 
+global shutdown
+shutdown = []
+
 busy = False
 
 @app.route('/write_order/<d>')
@@ -93,12 +95,13 @@ def get_payment_status(identity):
 @app.route('/get_cart_price/<id>')
 def get_cart_price(id):
 	global dishes_db
+	carthotel = get_key("user:" + str(id) + ":assigned_rest")
 	key = get_cart_id(id)
 	cart = get_hash(key)
 	prices = {"oos":[]}
 	total = 0
 	for item in cart:
-		if(dishes_db[dishes_db["name"]==item]["stock"].tolist()[0]=="In"):
+		if(dishes_db[dishes_db["name"]==item][carthotel].tolist()[0]=="In"):
 			if(int(cart[item])>0):
 				#print item
 				val =  dishes_db[dishes_db["name"] == item]["price"].tolist()[0]
@@ -119,15 +122,42 @@ def get_cart_price(id):
 	prices["discount"]=prices["total"]*int(get_key(key))/100
 	return prices
 
+def rpushl(key,value):
+	command = "redis-cli rpush " + key + " " + value
+	commands.getoutput(command)
+
+global link
+link = "35.154.196.70:5000/"
+
 @app.route('/cart/<identity>/add/<d>')
 def change_cart(identity, d):
-	print "Enter add"
+	global link
+	call = link +"cart/" + str(identity) + "/add/" + json.dumps(d)
 	d = d.lower()
 	data = {"incart":[],"oos":[]}
 	d = json.loads(d)
+	carthotel = get_key("user:" + str(identity) + ":assigned_rest")
 	key = "user:"+ identity +":cart:"+str(int(set_count("user:"+identity+":confirmed_carts"))+1)
+	locflag = get_key("user:" + str(identity) + ":cart:" + str(int(set_count("user:"+identity+":confirmed_carts"))+1) + ":flag")
+	print carthotel
+	print locflag
+	if locflag == '0':
+		print 0
+		data["locflag"] = 0
+	else:
+		print 1
+		if carthotel == '':
+			print 2
+			set_key("user:"+str(identity)+":calls",call)
+			set_key("user:"+str(identity)+":call-tags","add")
+			return {"call":call,"locflag":2,"tag":"add"}
+		else:
+			print 3
+			set_key("user:"+str(identity)+":calls",call)
+			set_key("user:"+str(identity)+":call-tags","add")
+			return {"call":call,"locflag":1,"tag":"add"}
 	for item in d:
-		if(dishes_db[dishes_db["name"]==item]["stock"].tolist()[0]=="In"):
+		if(dishes_db[dishes_db["name"]==item][carthotel].tolist()[0]=="In"):
 			incr_hash_field_by(key,item,d[item])
 			data["incart"].append(item)
 		else:
@@ -150,6 +180,16 @@ def add_new_hotel(name,lat,longi):
     global Hotel_locations
     Hotel_locations[name] = Point(lat+" "+longi)
 
+@app.route('/shutdown_hotels/<hotel>')
+def shutdownhotels(hotel):
+	global shutdown
+	if hotel in shutdown:
+		dishes_db[hotel] = dishes_db[hotel].replace("Out","In")
+	else:
+		shutdown.append(hotel)
+		dishes_db[hotel] = dishes_db[hotel].replace("In","Out")
+	return json.dumps(shutdown)
+
 @app.route('/get_nearest_hotel/<lat>/<longi>')
 def get_nearest_hotel(lat,longi):
 	result = []
@@ -166,14 +206,18 @@ def get_nearest_hotel(lat,longi):
 def show(identity):
 	res = {"oos":[]}
 	key = "user:"+ str(identity) +":cart:"+str(int(set_count("user:"+identity+":confirmed_carts"))+1)
+	carthotel = get_key("user:" + str(identity) + ":assigned_rest")
+	print carthotel
 	if key_exists(key) == False:
+		return json.dumps(res)
+	if carthotel == '':
 		return json.dumps(res)
 	result = get_hash(key)
 	for item in result:
 		if(int(result[item])<=0):
 			delete_hash_field(key,item)
 		else:
-			if(dishes_db[dishes_db["name"]==item]["stock"].tolist()[0] == "In"):
+			if(dishes_db[dishes_db["name"]==item][carthotel].tolist()[0] == "In"):
 				res[item] = [dishes_db[dishes_db["name"] == item]["price"].tolist()[0],result[item]]
 			else:
 				delete_hash_field(key,item)
@@ -188,8 +232,10 @@ def replace(identity,d):
 	delete_key(key)
 	d=json.loads(d)
 	data = {"incart":[],"oos":[]}
+	carthotel = get_key("user:" + str(identity) + ":assigned_rest")
+	print carthotel
 	for item in d:
-		if(dishes_db[dishes_db["name"]==item]["stock"].tolist()[0]=="In"):
+		if(dishes_db[dishes_db["name"]==item][carthotel].tolist()[0]=="In"):
 			set_hash_field(key,item,d[item])
 			data["incart"].append(item)
 		else:
@@ -212,6 +258,8 @@ def get_details(identity):
 	data['name'] = get_hash_field(key,"name").replace("_"," ")
 	return data
 
+def randnum():
+	return random.randint(1,50)
 
 @app.route('/discount/<num>')
 def disc(num):
@@ -282,6 +330,8 @@ def confirm10(identity):
 	orders[str(identity)] = data
 	#write_order(data)
 	print(data)
+
+
 
 '''
 0 pending
@@ -615,7 +665,7 @@ def store_the_dishes():
 ["200","Non Veg","mutton"],"Prawn Roll":
 ["200","Non Veg","prawn"]}}}
 	global dishes_db , dishes_dicti
-	dishes_db_new = {"name":[],"v_n":[],"base_ing":[],"course":[],"category":[],"count":[],"price":[],"link":[],"stock":[]}
+	dishes_db_new = {"name":[],"v_n":[],"base_ing":[],"course":[],"category":[],"count":[],"price":[],"stock":[],"link":[],"Old_Airport_Road":[],"Yelahanka":[],"Residency_Road":[],"Koramangala":[]}
 	for course in temp["Courses"]:
 		for dish in temp["Courses"][course]:
 			dishes_db_new["course"].append(course)
@@ -650,6 +700,10 @@ def store_the_dishes():
 
 			dishes_db_new["name"].append(dish.replace(" ","_").lower().replace("(","").replace(")",""))
 			dishes_db_new["stock"].append("In")
+			dishes_db_new["Old_Airport_Road"].append("In")
+			dishes_db_new["Koramangala"].append("In")
+			dishes_db_new["Yelahanka"].append("In")
+			dishes_db_new["Residency_Road"].append("In")
 			s = 'http://genii.ai/activebots/Babadadhaba/img/db/'
 			if dish in ["P For Pakora Platter","Fluffy Poori Allo","Anda Aur Aloo Combo","Chole Wale Bhature","Healthy Jalandhar Combo","Prawn Roll"]:
 				dishes_db_new["link"].append(s  + "bdd_logo.jpg")
@@ -660,7 +714,6 @@ def store_the_dishes():
 				dishes_db_new["count"].append(dishes_dicti[dish.replace(" ","_").lower().replace("(","").replace(")","")])
 			else:
 				dishes_db_new["count"].append(0)
-
 			count = 1
 			for data in temp["Courses"][course][dish]:
 				if (count == 1):
@@ -672,7 +725,6 @@ def store_the_dishes():
 					data = data.replace(" ","_").lower()
 					dishes_db_new["base_ing"].append(data)
 				count = count + 1
-
 	dishes_db = pd.DataFrame.from_dict(dishes_db_new, orient='index')
 	a_db = dishes_db.transpose()
 	dishes_db = a_db
@@ -682,7 +734,6 @@ def store_the_dishes():
 	with open('dishes15.txt','w') as outfile:
 		json.dump(xyz, outfile)
 	#print(dishes_db)
-
 
 @app.route('/cart/<identity>/remove/<d>')
 def change_cart(identity, d):
@@ -701,13 +752,26 @@ def change_cart(identity, d):
 	else:
 		yield "Done"
 
-
 @app.route('/<identity>/set_contact/<contact>')
 def set_contact(identity,contact):
 	key = "user:"+str(identity)+":cur_contact"
 	set_key(key,str(contact))
 	key = "user:"+str(identity)+":contacts"
 	ss_member_increment_by(key,str(contact),"1")
+
+def getcalls(key):
+	command = "redis-cli lrange " + key + " 0 -1"
+	calls = commands.getoutput(command)
+	calls = calls.split('\n')
+	print calls
+	expire_key_in(key,1)
+	return calls
+
+@app.route('/use_saved/<identity>')
+def saved_address(identity):
+	set_key("user:" + str(identity) + ":cart:" + str(int(set_count("user:"+str(identity)+":confirmed_carts"))+1) + ":flag","0")
+	expire_key_in("user:" + str(identity) + ":cart:" + str(int(set_count("user:"+str(identity)+":confirmed_carts"))+1) + ":flag",3600)
+	return {"tags":"saved_address"}
 
 @app.route('/<identity>/set_address/<address>')
 def set_address(identity,address):
@@ -718,13 +782,20 @@ def set_address(identity,address):
 	set_key(key,str(address).replace(" ","_"))
 	key = "user:"+str(identity)+":addresses"
 	ss_member_increment_by(key,str(address).replace(" ","_"),"1")
+	set_key("user:" + str(identity) + ":cart:" + str(int(set_count("user:"+str(identity)+":confirmed_carts"))+1) + ":flag","0")
+	expire_key_in("user:" + str(identity) + ":cart:" + str(int(set_count("user:"+str(identity)+":confirmed_carts"))+1) + ":flag",3600)
 	if(q!=None):
 		key = "user:"+str(identity)+":assigned_rest"
-		set_key(key,q)
-		return q
+		if q not in shutdown:
+			set_key(key,q)
+			det = {"area":q,"calls":get_key("user:"+str(identity)+":calls"),"tags":get_key("user:"+str(identity)+":call-tags")}
+			return det
+		else:
+			set_key(key,"None")
+			return {"status":"shut_down"}
 	else:
 		set_key(key,"None")
-		return "None"
+		return {"status":"out_of_range"}
 
 @app.route('/<identity>/set_note/<note>')
 def set_contact(identity,note):
@@ -828,7 +899,6 @@ def get_reciept(identity):
 	key = "user:"+str(identity)+":cart_status"
 	data['order_status'] = get_key(key)
 	yield json.dumps(data)
-
 
 @app.route('/read_orders')
 def read_orders():
@@ -952,6 +1022,58 @@ def outstock(dname):
 	elif(dishes_db[dishes_db['name']==dname]['stock'].tolist()[0]== 'Out'):
 		dishes_db.loc[dishes_db['name']==dname,'stock'] = 'In'
 	u = 'http://0.0.0.0:7000/outofstock/'
+	h ={ 'content-type': 'application/json; charset=utf-8'}
+	r = requests.get(url=u+dname,headers=h)
+	#print dishes_db
+	return "Success"
+
+@app.route('/outofstock_K/<dname>')
+def outstock_K(dname):
+	dname = dname.lower().replace(" ","_")
+	if(dishes_db[dishes_db['name']==dname]['Koramangala'].tolist()[0]== 'In'):
+		dishes_db.loc[dishes_db['name']==dname,'Koramangala'] = 'Out'
+	elif(dishes_db[dishes_db['name']==dname]['Koramangala'].tolist()[0]== 'Out'):
+		dishes_db.loc[dishes_db['name']==dname,'Koramangala'] = 'In'
+	u = 'http://0.0.0.0:7000/outofstock_K/'
+	h ={ 'content-type': 'application/json; charset=utf-8'}
+	r = requests.get(url=u+dname,headers=h)
+	#print dishes_db
+	return "Success"
+
+@app.route('/outofstock_Y/<dname>')
+def outstock_Y(dname):
+	dname = dname.lower().replace(" ","_")
+	if(dishes_db[dishes_db['name']==dname]['Yelahanka'].tolist()[0]== 'In'):
+		dishes_db.loc[dishes_db['name']==dname,'Yelahanka'] = 'Out'
+	elif(dishes_db[dishes_db['name']==dname]['Yelahanka'].tolist()[0]== 'Out'):
+		dishes_db.loc[dishes_db['name']==dname,'Yelahanka'] = 'In'
+	u = 'http://0.0.0.0:7000/outofstock_Y/'
+	h ={ 'content-type': 'application/json; charset=utf-8'}
+	r = requests.get(url=u+dname,headers=h)
+	#print dishes_db
+	return "Success"
+
+@app.route('/outofstock_O/<dname>')
+def outstock_O(dname):
+	dname = dname.lower().replace(" ","_")
+	if(dishes_db[dishes_db['name']==dname]['Old_Airport_Road'].tolist()[0]== 'In'):
+		dishes_db.loc[dishes_db['name']==dname,'Old_Airport_Road'] = 'Out'
+	elif(dishes_db[dishes_db['name']==dname]['Old_Airport_Road'].tolist()[0]== 'Out'):
+		dishes_db.loc[dishes_db['name']==dname,'Old_Airport_Road'] = 'In'
+	u = 'http://0.0.0.0:7000/outofstock_O/'
+	h ={ 'content-type': 'application/json; charset=utf-8'}
+	r = requests.get(url=u+dname,headers=h)
+	#print dishes_db
+	return "Success"
+
+@app.route('/outofstock_R/<dname>')
+def outstock_R(dname):
+	dname = dname.lower().replace(" ","_")
+	if(dishes_db[dishes_db['name']==dname]['Residency_Road'].tolist()[0]== 'In'):
+		dishes_db.loc[dishes_db['name']==dname,'Residency_Road'] = 'Out'
+	elif(dishes_db[dishes_db['name']==dname]['Residency_Road'].tolist()[0]== 'Out'):
+		dishes_db.loc[dishes_db['name']==dname,'Residency_Road'] = 'In'
+	u = 'http://0.0.0.0:7000/outofstock_R/'
 	h ={ 'content-type': 'application/json; charset=utf-8'}
 	r = requests.get(url=u+dname,headers=h)
 	#print dishes_db

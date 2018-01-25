@@ -26,22 +26,30 @@ def reco():
 	result = {"reco": result['name'].tolist()[:5],"links":result['link'].tolist()[:5],"prices":result['price'].tolist()[:5]}
 	yield json.dumps(result)
 
-@app.route('/recommend/<v_n>/<base_ing>/<category>')
-def reco_filter1(v_n,base_ing,category):
-	global dishes_db
-	result = dishes_db[dishes_db['stock']=='In']
-	if v_n in ["veg","nonveg"]:
-		result = result[result["v_n"]==v_n]
-	if base_ing in ["chicken","mutton","dal","rice","chole","chocolate","paneer"]:
-		result = result[result["base_ing"]==base_ing]
-	if category in ["roll","rice","combo","mini_combo","subzi","bread","starter","dessert"]:
-		result = result[result["category"]==category]
-	result = {"reco": result['name'].tolist()[:5],"links":result['link'].tolist()[:5],"prices":result['price'].tolist()[:5]}
-	yield json.dumps(result)
+@app.route('/recommend/<v_n>/<base_ing>/<category>/<identity>')
+def reco_filter1(v_n,base_ing,category,identity):
+	global dishes_db,link
+	carthotel = get_key("user:" + str(identity) + ":assigned_rest")
+	locflag = locflaging(identity)
+	if locflag == 0:
+		result = dishes_db[dishes_db[carthotel]=='In']
+		if v_n in ["veg","nonveg"]:
+			result = result[result["v_n"]==v_n]
+		if base_ing in ["chicken","mutton","dal","rice","chole","chocolate","paneer"]:
+			result = result[result["base_ing"]==base_ing]
+		if category in ["roll","rice","combo","mini_combo","subzi","bread","starter","dessert"]:
+			result = result[result["category"]==category]
+		result = {"reco": result['name'].tolist()[:5],"links":result['link'].tolist()[:5],"prices":result['price'].tolist()[:5],"locflag":0}
+		yield json.dumps(result)
+	else:
+		set_key("user:"+str(identity)+":calls",link + "/recommend/" + v_n + "/" + base_ing + "/" + category + "/" + str(identity))
+		set_key("user:"+str(identity)+":call-tags","recommend_specific")
+		result = {"tag":"recommend_specific","locflag":locflag,"call":link + "/recommend/" + v_n + "/" + base_ing + "/" + category + "/" + str(identity)}
+		yield json.dumps(result)
 
-def reco_filter(v_n,base_ing,category):
+def reco_filter(v_n,base_ing,category,hotel):
 	global dishes_db
-	result = dishes_db[dishes_db['stock']=='In']
+	result = dishes_db[dishes_db[hotel]=='In']
 	if v_n in ["veg","nonveg"]:
 		result = result[result["v_n"]==v_n]
 	if base_ing in ["chicken","mutton","dal","rice","chole","chocolate","paneer"]:
@@ -51,53 +59,78 @@ def reco_filter(v_n,base_ing,category):
 	result = {"reco": result['name'].tolist()[:5],"links":result['link'].tolist()[:5],"prices":result['price'].tolist()[:5]}
 	return result
 
-@app.route('/specials')
-def special():
-	global dishes_db
+@app.route('/specials/<identity>')
+def special(identity):
+	global dishes_db,link
 	'''result = dishes_db
 	result = {"reco": result['name'].tolist()[:5],"links":result['link'].tolist()[:5],"prices":result['price'].tolist()[:5]}
 	yield json.dumps(result)
 	'''
-	result = dishes_db[dishes_db['stock']=='In']
-	result = result[result["category"]=="specials"]
-	result = {"reco": result['name'].tolist()[:5],"links":result['link'].tolist()[:5],"prices":result['price'].tolist()[:5]}
-	yield json.dumps(result)
+	carthotel = get_key("user:" + str(identity) + ":assigned_rest")
+	locflag = locflaging(identity)
+	if locflag == 0:
+		result = dishes_db[dishes_db[carthotel]=='In']
+		result = result[result["category"]=="specials"]
+		result = {"reco": result['name'].tolist()[:5],"links":result['link'].tolist()[:5],"prices":result['price'].tolist()[:5],"locflag":0}
+		yield json.dumps(result)
+	else :
+		set_key("user:"+str(identity)+":calls",link + "/specials/" + str(identity))
+		set_key("user:"+str(identity)+":call-tags","specials")
+		yield json.dumps({"tag":"special","locflag":locflag,"call":link + "/specials/" + str(identity)})
 
+
+def locflaging(identity):
+	carthotel = get_key("user:" + str(identity) + ":assigned_rest")
+	locflag = get_key("user:" + str(identity) + ":cart:" + str(int(set_count("user:"+str(identity)+":confirmed_carts"))+1) + ":flag")
+	if locflag == '0':
+		return 0
+	elif locflag == '':
+		if carthotel != '':
+			return 1
+		else:
+			return 2
+
+global link
+link = "35.154.196.70:7000"
+
+def rpushl(key,value):
+	command = "redis-cli rpush " + key + " " + value
+	commands.getoutput(command)
 
 @app.route('/<identity>/get_history_reco')
 def get_recommend_dishes2(identity):
-	global dishes_db
-	print dishes_db
+	global dishes_db,link
+	#print dishes_db
+	call = link + "/" + str(identity) + "/get_history_reco"
+	print call
+	carthotel = get_key("user:" + str(identity) + ":assigned_rest")
+	locflag = locflaging(identity)
 	if(key_exists("user:"+str(identity)+":ordered_items") == False):
-		dik = reco_filter('k','k','k')
-		print dik
-		yield json.dumps(dik)
+		if locflag == 0:
+			dik = reco_filter('k','k','k',carthotel)
+			dik['locflag'] = 0
+			yield json.dumps(dik)
+		else :
+			set_key("user:"+str(identity)+":calls",call)
+			set_key("user:"+str(identity)+":call-tags","recommend")
+			yield json.dumps({"tag":"recommend","locflag":locflag,"call":link + "/" + str(identity)+"/get_history_reco"})
 	else:
-		di = dishes_db[dishes_db['stock']=='In']
-		dishes_list = get_history_reco3(di,identity)
 		recommendation = {"reco": [],"links":[],"prices":[]}
-		for dish in dishes_list:
-			result = dishes_db[dishes_db["name"] == dish]
-			recommendation["reco"].append(result["name"].tolist()[0])
-			recommendation["prices"].append(result["price"].tolist()[0])
-			recommendation["links"].append(result["link"].tolist()[0])
-		print recommendation
-		yield json.dumps(recommendation)
-
-def get_recommend_dishes(identity):
-	global dishes_db
-	if(key_exists("user:"+str(identity)+":ordered_items") == False):
-		return json.dumps(reco_filter('k','k','k'))
-	else:
-		dishes_list = get_history_reco(identity)
-		recommendation = {"reco": [],"links":[],"prices":[]}
-		for dish in dishes_list:
-			result = dishes_db[dishes_db["name"] == dish]
-			recommendation["reco"].append(result["name"].tolist()[0])
-			recommendation["prices"].append(result["price"].tolist()[0])
-			recommendation["links"].append(result["link"].tolist()[0])
-		return recommendation
-
+		if locflag == 0:
+			recommendation['locflag'] = 0
+			di = dishes_db[dishes_db[carthotel]=='In']
+			dishes_list = get_history_reco3(di,identity)
+			for dish in dishes_list:
+				result = dishes_db[dishes_db["name"] == dish]
+				recommendation["reco"].append(result["name"].tolist()[0])
+				recommendation["prices"].append(result["price"].tolist()[0])
+				recommendation["links"].append(result["link"].tolist()[0])
+			recommendation['locflag'] = 0
+			yield json.dumps(recommendation)
+		else:
+			set_key("user:"+str(identity)+":calls",call)
+			set_key("user:"+str(identity)+":call-tags","recommend")
+			yield json.dumps({"tag":"recommend","locflag":locflag,"call":link + "/" + str(identity)+"/get_history_reco"})
 
 def get_usual(identity):
 	key = "user:"+str(identity)+":ordered_items"
@@ -119,7 +152,8 @@ def get_usual(identity):
 def set_new_details(identity,name):
 	key = "user:" + str(identity) + ":details"
 	set_hash_field(key,"name",name.replace(" ","_"))
-	yield json.dumps({"first_name":name})
+	set_key("user:"+str(identity)+":call-tags","New_user")
+	yield json.dumps({"first_name":name,"locflag":2,"tag":"New_user"})
 
 def get_price(items):
 	global dishes_db
@@ -142,6 +176,7 @@ def user_details(identity):
 		yield json.dumps(result)
 	else:
 		result["name"] = get_hash_field(key,"name").replace("_"," ")
+		result["locflag"] = locflaging(identity)
 		if(key_exists("user:"+str(identity)+":ordered_items") == True):
 			s1 = get_key("user:"+str(identity)+":tic")
 			result["day_diff"] = "None"
@@ -249,7 +284,7 @@ def store_the_dishes():
 ["200","Non Veg","mutton"],"Prawn Roll":
 ["200","Non Veg","prawn"]}}}
 	global dishes_db , dishes_dicti
-	dishes_db_new = {"name":[],"v_n":[],"base_ing":[],"course":[],"category":[],"count":[],"price":[],"link":[],"stock":[]}
+	dishes_db_new = {"name":[],"v_n":[],"base_ing":[],"course":[],"category":[],"count":[],"price":[],"link":[],"stock":[],"Yelahanka":[],"Koramangala":[],"Old_Airport_Road":[],"Residency_Road":[]}
 	for course in temp["Courses"]:
 		for dish in temp["Courses"][course]:
 			dishes_db_new["course"].append(course)
@@ -284,6 +319,10 @@ def store_the_dishes():
 
 			dishes_db_new["name"].append(dish.replace(" ","_").lower().replace("(","").replace(")",""))
 			dishes_db_new["stock"].append("In")
+			dishes_db_new["Yelahanka"].append("In")
+			dishes_db_new["Old_Airport_Road"].append("In")
+			dishes_db_new["Koramangala"].append("In")
+			dishes_db_new["Residency_Road"].append("In")
 			s = 'http://genii.ai/activebots/Babadadhaba/img/db/'
 			if dish in ["P For Pakora Platter","Fluffy Poori Allo","Anda Aur Aloo Combo","Chole Wale Bhature","Healthy Jalandhar Combo","Prawn Roll"]:
 				dishes_db_new["link"].append(s  + "bdd_logo.jpg")
@@ -358,13 +397,60 @@ def outstocking(dname):
 	print dishes_db
 	return json.dumps('Success')
 
+@app.route('/outofstock_K/<dname>')
+def outstocking_K(dname):
+	global dishes_db
+	dname = dname.lower().replace(" ","_")
+	if(dishes_db[dishes_db['name']==dname]['Koramangala'].tolist()[0]== 'In'):
+		dishes_db.loc[dishes_db['name']==dname,'Koramangala'] = 'Out'
+	elif(dishes_db[dishes_db['name']==dname]['Koramangala'].tolist()[0]== 'Out'):
+		dishes_db.loc[dishes_db['name']==dname,'Koramangala'] = 'In'
+	print dname
+	print dishes_db
+	return json.dumps('Success')
+
+@app.route('/outofstock_Y/<dname>')
+def outstocking_Y(dname):
+	global dishes_db
+	dname = dname.lower().replace(" ","_")
+	if(dishes_db[dishes_db['name']==dname]['Yelahanka'].tolist()[0]== 'In'):
+		dishes_db.loc[dishes_db['name']==dname,'Yelahanka'] = 'Out'
+	elif(dishes_db[dishes_db['name']==dname]['Yelahanka'].tolist()[0]== 'Out'):
+		dishes_db.loc[dishes_db['name']==dname,'Yelahanka'] = 'In'
+	print dname
+	print dishes_db
+	return json.dumps('Success')
+
+@app.route('/outofstock_O/<dname>')
+def outstocking_O(dname):
+	global dishes_db
+	dname = dname.lower().replace(" ","_")
+	if(dishes_db[dishes_db['name']==dname]['Old_Airport_Road'].tolist()[0]== 'In'):
+		dishes_db.loc[dishes_db['name']==dname,'Old_Airport_Road'] = 'Out'
+	elif(dishes_db[dishes_db['name']==dname]['Old_Airport_Road'].tolist()[0]== 'Out'):
+		dishes_db.loc[dishes_db['name']==dname,'Old_Airport_Road'] = 'In'
+	print dname
+	print dishes_db
+	return json.dumps('Success')
+
+@app.route('/outofstock_R/<dname>')
+def outstocking_R(dname):
+	global dishes_db
+	dname = dname.lower().replace(" ","_")
+	if(dishes_db[dishes_db['name']==dname]['Residency_Road'].tolist()[0]== 'In'):
+		dishes_db.loc[dishes_db['name']==dname,'Residency_Road'] = 'Out'
+	elif(dishes_db[dishes_db['name']==dname]['Residency_Road'].tolist()[0]== 'Out'):
+		dishes_db.loc[dishes_db['name']==dname,'Residency_Road'] = 'In'
+	print dname
+	print dishes_db
+	return json.dumps('Success')
+
 @app.route('/refreshing')
 def refresh_stock():
 	global dishes_db
 	dishes_db = dishes_db.replace("Out","In")
 	print dishes_db
 	return json.dumps('Success')
-
 
 #store_the_dishes()
 

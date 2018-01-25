@@ -1,4 +1,4 @@
-
+//dddwwd
 'use strict';
 const express = require('express');
 const bodyParser = require('body-parser');
@@ -11,7 +11,7 @@ var Promise = require("bluebird");
 var request_1 = Promise.promisifyAll(require("request"));
 var activelink ='http://35.154.196.70:5000/';
 var recommendationLink = 'http://35.154.196.70:7000/';
-let token = 'EAAEms8xEwDABALMxmOTzJGGjU8ZAwaG9W5RYAzhHUamxB7ixLrqwGrLvRUVDSQUiGO0FAOX8ZC78PDZBZBAVz2SF6XijsCa8l7WUGNRPgR1uOUOwSZBDXToqsSiiZCYibIgeurMTnq8Dc2v1RHShUNbXfUxaEaONHW11FtgpWeTwZDZD';
+let token = 'EAADg7MiZAzmsBAFDeTRDxyhOapZCkY8CVvXcqbfPlzUz2BCI0CD6boY6DCkEQ8laS8O0WYTMVt0tZBfN9ZCzMgnoXSc1tdPZC0ePtWYXAUkpwfpTAybufnT3Md4dKioBi7ERuhZAeIU41mPduymK677H08I9u2eJ3a7MWb1fLFfwZDZD';
 
 
 // The rest of the code implements the routes for our Express server.
@@ -50,7 +50,7 @@ app.get('/', function(req, res) {
 app.get('/confirm', function (req, res) {
         //var paymentId=req.query.key;
         var userId=req.query.Id;
-
+    console.log("got called");
         if(userId){
                 var operation =activelink + "get_new_receipt/" + JSON.stringify(req.query) ;
                 callSendRedisapi("receipt",operation,userId,"nothing");
@@ -697,48 +697,86 @@ function sendReciept(recipientID,newdiscount,name,total,titles,quantity,price,ad
                 string=makeJsonreceipt(titles[i],quantity[i],price[i]);
                 cards[i]=string;
         }
-        var messageData={
-                "recipient":{
-                        id:recipientID
-                        },
-                message:{
-                        attachment:{
-                                type:"template",
-                                payload:{
-                                        template_type:"receipt",
-                                        recipient_name:Name,
-                                        order_number:recipientID,
-                                        currency:"INR",
-                                        payment_method:"Cash on Delievery",
-                                        order_url:"http://genii.ai/policy/ActiveBots/Babadadhaba/Admin",
-                                        timestamp:"1428444852",
-                                        elements:cards,
-                                        address:{
-                                                street_1:address,
-                                                street_2:"\n",
-                                                city:"Phone-number",
-                                                postal_code:Num,
-                                                state:" : ",
-                                                country:"India"
-                                        },
-                                        summary:{
-                                                subtotal:total,
-                                                shipping_cost:0.00,
-                                                total_tax:0.00,
-                                                total_cost: total-newdiscount
-                                        },
-                                        adjustments:[
-                                                {
-                                                        name:"Bot Offer",
-                                                        amount:newdiscount
-                                                }
-                                        ]
-                                }
-                        }
-                }
-        };
-        console.log(messageData.message.attachment.payload.address);
-        callSendAPI(messageData);
+    var messageData;
+    if (newdiscount!=0)
+        {   messageData={
+                    "recipient":{
+                            id:recipientID
+                            },
+                    message:{
+                            attachment:{
+                                    type:"template",
+                                    payload:{
+                                            template_type:"receipt",
+                                            recipient_name:Name,
+                                            order_number:recipientID,
+                                            currency:"INR",
+                                            payment_method:"Cash on Delievery",
+                                            order_url:"http://genii.ai/policy/ActiveBots/Babadadhaba/Admin",
+                                            timestamp:"1428444852",
+                                            elements:cards,
+                                            address:{
+                                                    street_1:address,
+                                                    street_2:"\n",
+                                                    city:"Phone-number",
+                                                    postal_code:Num,
+                                                    state:" : ",
+                                                    country:"India"
+                                            },
+                                            summary:{
+                                                    subtotal:total,
+                                                    shipping_cost:0.00,
+                                                    total_tax:0.00,
+                                                    total_cost: total-newdiscount
+                                            },
+                                            adjustments:[
+                                                    {
+                                                            name:"Bot Offer",
+                                                            amount:newdiscount
+                                                    }
+                                            ]
+                                    }
+                            }
+                    }
+            };
+    }
+    else
+        {   messageData={
+                    "recipient":{
+                            id:recipientID
+                            },
+                    message:{
+                            attachment:{
+                                    type:"template",
+                                    payload:{
+                                            template_type:"receipt",
+                                            recipient_name:Name,
+                                            order_number:recipientID,
+                                            currency:"INR",
+                                            payment_method:"Cash on Delievery",
+                                            order_url:"http://genii.ai/policy/ActiveBots/Babadadhaba/Admin",
+                                            timestamp:"1428444852",
+                                            elements:cards,
+                                            address:{
+                                                    street_1:address,
+                                                    street_2:"\n",
+                                                    city:"Phone-number",
+                                                    postal_code:Num,
+                                                    state:" : ",
+                                                    country:"India"
+                                            },
+                                            summary:{
+                                                    subtotal:total,
+                                                    shipping_cost:0.00,
+                                                    total_tax:0.00,
+                                                    total_cost: total-newdiscount
+                                            },
+                                    }
+                            }
+                    }
+            };
+    }
+    callSendAPI(messageData);
 }
 
 function makeJsonreceipt(title,quantity,price){
@@ -778,12 +816,14 @@ function callSendRedisapi(tag,operation,sender,text){
                 method: 'GET'
         }).then(function(res,err){
                 console.log("Got response");
-                //console.log(Text1);
                 var body = ''; // Will contain the final response
                 // Received data is a buffer.
                 // Adding it to our body
                 if(err) throw err;
                 if (tag==='add'){
+
+                        if(response.locflag===0){
+                            console.log(locflag)
                         var link="http://genii.ai/activebots/Babadadhaba?userId=" + sender;
                         //  sendButton(sender,["postback","postback","web_url"],message,["Show_specials","Recommend",link],["Specials", "Recommendations", "Menu"],"tall");
                           var response=JSON.parse(res.body);
@@ -791,9 +831,31 @@ function callSendRedisapi(tag,operation,sender,text){
                           //console.log(aiText);
                           if(response.oos.length!=0){
                             var aiText = "Sorry, we dont have "+toTitleCase(response.oos[0].replace(/_/g, " " )) +" right now";
-                          //  sendTextMessage(sender,aiText);
-                              var link="http://genii.ai/activebots/Babadadhaba?userId=" + sender;
-                        sendButton(sender,["postback","postback","web_url"],aiText,["Show_specials","Recommend",link],["Specials", "Recommendations", "Menu"],"tall");
+                          
+                            var link="http://genii.ai/activebots/Babadadhaba?userId=" + sender;
+                            sendButton(sender,["postback","postback","web_url"],aiText,["Show_specials","Recommend",link],["Specials", "Recommendations", "Menu"],"tall");
+                        }
+
+                        else if(response.locflag===1){
+                              console.log(locflag)
+                        }
+
+                        else if(response.locflag===2){
+                              console.log(locflag)
+                        }
+                        else if(response.locflag===3)
+
+                        var link="http://genii.ai/activebots/Babadadhaba?userId=" + sender;
+                        //  sendButton(sender,["postback","postback","web_url"],message,["Show_specials","Recommend",link],["Specials", "Recommendations", "Menu"],"tall");
+                          var response=JSON.parse(res.body);
+                          console.log(response);
+                          //console.log(aiText);
+                          if(response.oos.length!=0){
+                            var aiText = "Sorry, we dont have "+toTitleCase(response.oos[0].replace(/_/g, " " )) +" right now";
+                          
+                            var link="http://genii.ai/activebots/Babadadhaba?userId=" + sender;
+                            sendButton(sender,["postback","postback","web_url"],aiText,["Show_specials","Recommend",link],["Specials", "Recommendations", "Menu"],"tall");
+                        }
                     }
 
                       //  if(res.body.oos)
@@ -801,35 +863,7 @@ function callSendRedisapi(tag,operation,sender,text){
 
                         console.log("hfuiscnsc");
                        sendButton(sender,["postback", "web_url", "postback"],Text1,["Show_cart",link, "Confirm_order"],["Show cart", "menu", "confirm order"],"tall");        }
-               /* else if(tag==="status"){
-                        var response=JSON.parse(res.body);
-                        console.log(response);
-                        var status=response.status;
-                        if (status==='accepted')
-                        {
-                                sendButton(sender,["postback"],"Your order has been accepted.",['check_status'],["Check status"],"tall");
-                        }
-                        else if (status==='pending')
-                        {
-                                sendButton(sender,["postback"],"Your order is  still pending acceptance.",['check_status'],["Check status"],"tall");
-                        }
-                        else if (status==='in_kitchen')
-                        {
-                                sendButton(sender,["postback"],"Your order is in the kitchen.",['check_status'],["Check status"],"tall");
-                        }
-                        else if (status==='out_for_delivery')
-                        {
-                                sendButton(sender,["postback"],"Your order is out for delivery. Your delivery boy can be contacted at: "+response.Dboy,['check_status'],["Check status"],"tall");
-                        }
-                        else if (status==='delivered')
-                        {
-                                sendTextMessage(sender,"Your order has been delivered. Enjoy your meal :)");
-                        }
-                        else if(status==='rejected')
-                        {
-                            sendTextMessage(sender,"You aren't being server today.:P");
-                        }
-                }*/}
+               }
 
                 else if (tag==='payment'){
                         link= "http://genii.ai/activebots/Babadadhaba/payment.html?userid"+sender;

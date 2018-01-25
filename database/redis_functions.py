@@ -152,7 +152,8 @@ def ss_range(key,start,end):
 	items = result[::2]
 	scores = result[1::2]
 	result = {}
-	result[items[i]] = scores[i]
+	for i in range(len(items)):
+		result[items[i]] = scores[i]
 	return result
 
 def ss_member_add(key, member, score):

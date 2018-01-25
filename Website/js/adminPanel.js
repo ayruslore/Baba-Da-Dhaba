@@ -332,6 +332,66 @@ function saffron(){
   });
 }
 
+function saffron_R(){
+  document.getElementById("accordionis_1").innerHTML="";
+  $.ajax({
+    url: redisDb+'/read_orders_R',
+    success: function(data) {
+      data=JSON.parse(data);
+      console.log(data);
+      ordr(data, "is_1");
+    },
+    error: function(data){
+      console.log(data);
+    }
+  });
+}
+
+function saffron_O(){
+  document.getElementById("accordionis_1").innerHTML="";
+  $.ajax({
+    url: redisDb+'/read_orders_O',
+    success: function(data) {
+      data=JSON.parse(data);
+      console.log(data);
+      ordr(data, "is_1");
+    },
+    error: function(data){
+      console.log(data);
+    }
+  });
+}
+
+function saffron_Y(){
+  document.getElementById("accordionis_1").innerHTML="";
+  $.ajax({
+    url: redisDb+'/read_orders_Y',
+    success: function(data) {
+      data=JSON.parse(data);
+      console.log(data);
+      ordr(data, "is_1");
+    },
+    error: function(data){
+      console.log(data);
+    }
+  });
+}
+
+function saffron_K(){
+  document.getElementById("accordionis_1").innerHTML="";
+  $.ajax({
+    url: redisDb+'/read_orders_K',
+    success: function(data) {
+      data=JSON.parse(data);
+      console.log(data);
+      ordr(data, "is_1");
+    },
+    error: function(data){
+      console.log(data);
+    }
+  });
+}
+
 function discount(){
   var disc=document.getElementById('discount_per').value;
   if(disc<0 & disc>80){
