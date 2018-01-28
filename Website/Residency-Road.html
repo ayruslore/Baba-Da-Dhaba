@@ -26,7 +26,7 @@
   <script src="js/vendor/modernizr.custom.js"></script>
   <script src="js/vendor/jquery-2.1.4.min.js"></script>
   <script src="js/vars.js"></script>
-  <script src="js/adminPanel.js"></script>
+  <script src="js/rpanel.js"></script>
   <script src="js/dishEdit.js"></script>
   <script src="js/courseEdit.js"></script>
 </head>
@@ -93,6 +93,7 @@
               <a href='#' onclick="openCourse2(event, 'removeDish')">Remove Dish</a>
               <a href='#' onclick="openCourse2(event, 'addCourse')">Add Course</a>
               <a href='#' onclick="openCourse2(event, 'discount')">Add Discount Percent</a>
+              <a href='#' onclick="openCourse2(event, 'shut')">Shutdown</a>
             </div><!-- .widget.widget-price -->
 
             <div class="tabcontent2" id="addDish">
@@ -188,6 +189,11 @@
               <h4 class="toolbar-title">Add Discount Percent</h4>
                 <input class="form-control col-sm-6" id="discount_per" type="number" placeholder="Discount Percent">
                 <a href="#" class="btn btn-pill btn-primary waves-effect waves-light" onclick="discount()">Submit</a>
+            </div>
+
+            <div class="tabcontent2" id="shut">
+              <h4 class="toolbar-title"></h4>
+                <a href="#" class="btn btn-pill btn-danger waves-effect waves-light" onclick="shutingdown()">Hotel</a>
             </div>
 
           </div>

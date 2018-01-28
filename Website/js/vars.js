@@ -1,2 +1,2 @@
-var nodejsScript='https://26eed51e.ngrok.io';
-var redisDb='http://0.0.0.0:5000';
+var nodejsScript='babadadhaba-a432393.apaas.us2.oraclecloud.com';
+var redisDb='http://35.154.196.70:5000';
