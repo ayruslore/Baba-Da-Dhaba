@@ -1,6 +1,7 @@
 var DATA={"Courses": {}};
 var keys=[]
-var shutdown = "5" // 0 is open and 1 is close.
+var shutdown = "5"
+var ordrlen = 0 // 0 is open and 1 is close.
 $.ajax({
   type: "GET",
   url: redisDb+"/get_menu",
@@ -39,7 +40,6 @@ $.ajax({
     console.log(data);
 }
 });
-
 
 function toTitleCase(str){
   return str.replace(/\w\S*/g, function(txt){return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();});
@@ -268,6 +268,7 @@ function changeStatus(obj, orderId){
     }
   }
   else if(obj=="Delivered"){
+    ordrlen = ordrlen - 1 ;
     $.ajax({
       type: "GET",
       url: redisDb+"/cart/"+orderId+"/delivered",
@@ -281,6 +282,7 @@ function changeStatus(obj, orderId){
   }
   document.getElementById(orderId+"status").innerHTML=obj;
   if(obj=="Rejected"){
+    ordrlen = ordrlen - 1
     document.getElementById("o"+orderId).remove();
     $.ajax({
       type: "GET",
@@ -317,13 +319,26 @@ function changeStatus(obj, orderId){
 ]
 */
 
+function audioplay(){
+  var audio = new Audio('beep-09.mp3');
+  audio.play();
+}
+function checkcount(num){
+  if(num>ordrlen){
+    audioplay();
+  }
+  ordrlen = num ;
+}
+
 function ordr(data, loc){
   function toTitleCase(str){
     return str.replace(/\w\S*/g, function(txt){
       return txt.charAt(0).toUpperCase() + txt.substr(1).toLowerCase();
     });
   }
+  var ordrl = 0 ;
   for(var item in data){
+    ordrl = ordrl + 1 ;
     console.log(data[item]["id"], JSON.stringify(data[item]["cart"]));
     if(JSON.stringify(data[item]["cart"])!={}){
       var temp=data[item]["cart"];
@@ -333,7 +348,9 @@ function ordr(data, loc){
       addOrder((data[item]["id"]), "<li>Name: "+(data[item]["data"]["name"])+"</li><li>Phone Number: "+(data[item]["data"]["number"])+"</li><li>Address: "+(data[item]["data"]["address"])+"</li><li>"+x+"</li>", loc, data[item]["status"]);
     }
   }
+  checkcount(ordrl);
 }
+
 
 function saffron(){
   document.getElementById("accordionis_1").innerHTML="";
@@ -357,6 +374,7 @@ function saffron_R(){
     success: function(data) {
       data=JSON.parse(data);
       console.log(data);
+      console.log("surya");
       ordr(data, "is_1");
     },
     error: function(data){
