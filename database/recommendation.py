@@ -31,6 +31,8 @@ def reco_filter1(v_n,base_ing,category,identity):
 	global dishes_db,link
 	carthotel = get_key("user:" + str(identity) + ":assigned_rest")
 	locflag = locflaging(identity)
+	if carthotel in shutdown:
+		return json.dumps({"status":"shutdown","locflag":locflag})
 	if locflag == 0:
 		result = dishes_db[dishes_db[carthotel]=='In']
 		if v_n in ["veg","nonveg"]:
@@ -39,13 +41,13 @@ def reco_filter1(v_n,base_ing,category,identity):
 			result = result[result["base_ing"]==base_ing]
 		if category in ["roll","rice","combo","mini_combo","subzi","bread","starter","dessert"]:
 			result = result[result["category"]==category]
-		result = {"reco": result['name'].tolist()[:5],"links":result['link'].tolist()[:5],"prices":result['price'].tolist()[:5],"locflag":0}
-		yield json.dumps(result)
+		result = {"status":"open","reco": result['name'].tolist()[:5],"links":result['link'].tolist()[:5],"prices":result['price'].tolist()[:5],"locflag":0}
+		return json.dumps(result)
 	else:
 		set_key("user:"+str(identity)+":calls",link + "/recommend/" + v_n + "/" + base_ing + "/" + category + "/" + str(identity))
 		set_key("user:"+str(identity)+":call-tags","recommend_specific")
-		result = {"tag":"recommend_specific","locflag":locflag,"call":link + "/recommend/" + v_n + "/" + base_ing + "/" + category + "/" + str(identity)}
-		yield json.dumps(result)
+		result = {"status":"open","tag":"recommend_specific","locflag":locflag,"call":link + "/recommend/" + v_n + "/" + base_ing + "/" + category + "/" + str(identity)}
+		return json.dumps(result)
 
 def reco_filter(v_n,base_ing,category,hotel):
 	global dishes_db
@@ -68,15 +70,17 @@ def special(identity):
 	'''
 	carthotel = get_key("user:" + str(identity) + ":assigned_rest")
 	locflag = locflaging(identity)
+	if carthotel in shutdown:
+		return json.dumps({"status":"shut_down","locflag":locflag})
 	if locflag == 0:
 		result = dishes_db[dishes_db[carthotel]=='In']
 		result = result[result["category"]=="specials"]
-		result = {"reco": result['name'].tolist()[:5],"links":result['link'].tolist()[:5],"prices":result['price'].tolist()[:5],"locflag":0}
-		yield json.dumps(result)
+		result = {"status":"open","reco": result['name'].tolist()[:5],"links":result['link'].tolist()[:5],"prices":result['price'].tolist()[:5],"locflag":0}
+		return json.dumps(result)
 	else :
 		set_key("user:"+str(identity)+":calls",link + "/specials/" + str(identity))
 		set_key("user:"+str(identity)+":call-tags","specials")
-		yield json.dumps({"tag":"special","locflag":locflag,"call":link + "/specials/" + str(identity)})
+		return json.dumps({"tag":"special","locflag":locflag,"call":link + "/specials/" + str(identity),"status":"open"})
 
 global shutdown
 shutdown = []
@@ -148,15 +152,18 @@ def get_recommend_dishes2(identity):
 	print call
 	carthotel = get_key("user:" + str(identity) + ":assigned_rest")
 	locflag = locflaging(identity)
+	if carthotel in shutdown:
+		return json.dumps({"status":"shut_down","locflag":locflag})
 	if(key_exists("user:"+str(identity)+":ordered_items") == False):
 		if locflag == 0:
 			dik = reco_filter('k','k','k',carthotel)
 			dik['locflag'] = 0
-			yield json.dumps(dik)
+			dik['status'] = "open"
+			return json.dumps(dik)
 		else :
 			set_key("user:"+str(identity)+":calls",call)
 			set_key("user:"+str(identity)+":call-tags","recommend")
-			yield json.dumps({"tag":"recommend","locflag":locflag,"call":link + "/" + str(identity)+"/get_history_reco"})
+			return json.dumps({"tag":"recommend","locflag":locflag,"call":link + "/" + str(identity)+"/get_history_reco","status":"open"})
 	else:
 		recommendation = {"reco": [],"links":[],"prices":[]}
 		if locflag == 0:
@@ -169,11 +176,12 @@ def get_recommend_dishes2(identity):
 				recommendation["prices"].append(result["price"].tolist()[0])
 				recommendation["links"].append(result["link"].tolist()[0])
 			recommendation['locflag'] = 0
-			yield json.dumps(recommendation)
+			recommendation['status'] = "open"
+			return json.dumps(recommendation)
 		else:
 			set_key("user:"+str(identity)+":calls",call)
 			set_key("user:"+str(identity)+":call-tags","recommend")
-			yield json.dumps({"tag":"recommend","locflag":locflag,"call":link + "/" + str(identity)+"/get_history_reco"})
+			return json.dumps({"tag":"recommend","locflag":locflag,"call":link + "/" + str(identity)+"/get_history_reco","status":"open"})
 
 def get_usual(identity):
 	key = "user:"+str(identity)+":ordered_items"

@@ -234,6 +234,23 @@ def get_nearest_hotel(lat,longi):
 			return a
 	return None
 
+@app.route('/menu_loc/<identity>')
+def menu_loc(identity):
+		carthotel = get_key("user:" + str(identity) + ":assigned_rest")
+		set_key("user:"+str(identity)+":call-tags","menu")
+		locflag = get_key("user:" + str(identity) + ":cart:" + str(int(set_count("user:"+str(identity)+":confirmed_carts"))+1) + ":flag")
+		if locflag == '0':
+			return json.dumps({"locflag":0,"tag":"menu"})
+		if locflag == '2':
+			return json.dumps({"locflag":2,"tag":"menu"})
+		if locflag == '1':
+			return json.dumps({"locflag":1,"tag":"menu"})
+		elif locflag == '':
+			if carthotel != '':
+				return json.dumps({"locflag":1,"tag":"menu"})
+			else:
+				return json.dumps({"locflag":2,"tag":"menu"})
+
 @app.route('/cart/<identity>/show')
 def show(identity):
 	res = {"oos":[]}

@@ -11,7 +11,7 @@ $.ajax({
     for(var i=0; i<x.length; i++)
       DATA["Courses"][x[i]["course"]]={};
     for(var i=0; i<x.length; i++)
-      DATA["Courses"][x[i]["course"]][toTitleCase(x[i]["name"].replace(/_/g, ' '))]=[x[i]["price"], x[i]["v_n"], x[i]["stock"]];
+      DATA["Courses"][x[i]["course"]][toTitleCase(x[i]["name"].replace(/_/g, ' '))]=[x[i]["price"], x[i]["v_n"], x[i]["Koramangala"]];
     console.log(DATA);
     for (var key in DATA["Courses"])
       keys.push(key);
