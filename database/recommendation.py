@@ -78,12 +78,55 @@ def special(identity):
 		set_key("user:"+str(identity)+":call-tags","specials")
 		yield json.dumps({"tag":"special","locflag":locflag,"call":link + "/specials/" + str(identity)})
 
+global shutdown
+shutdown = []
+
+def changestock(dname):
+	Hotel_locations = ['Residency_Road','Old_Airport_Road','Koramangala','Yelahanka']
+	global shutdown,dishes_db
+	count = len(shutdown)
+	if dname == 'Hotel':
+		if count == 4:
+			dishes_db['stock'] = dishes_db['stock'].replace('In','Out')
+		else:
+			dishes_db['stock'] = dishes_db['stock'].replace('Out','In')
+	else:
+		for ht in Hotel_locations:
+			if ht not in shutdown:
+				if(dishes_db[dishes_db['name']==dname][ht].tolist()[0]== 'Out'):
+					count = count + 1
+		if(count == 4):
+			dishes_db.loc[dishes_db['name']==dname,'stock'] = 'Out'
+		else:
+			dishes_db.loc[dishes_db['name']==dname,'stock'] = 'In'
+			with open('dishes15.txt','w') as outfile:
+				json.dump(dishes_db.to_json(orient='index'),outfile)
+
+@app.route('/shutingdown/<hotel>')
+def shuting(hotel):
+        global shutdown
+        if hotel in shutdown:
+                dishes_db[hotel] = dishes_db[hotel].replace("Out","In")
+                with open('dishes15.txt','w') as outfile:
+                       	json.dump(dishes_db.to_json(orient='index'), outfile)
+                shutdown.remove(hotel)
+        else:
+               	shutdown.append(hotel)
+                dishes_db[hotel] = dishes_db[hotel].replace("In","Out")
+                with open('dishes15.txt','w') as outfile:
+                        json.dump(dishes_db.to_json(orient='index'), outfile)
+                changestock('Hotel')
+        return json.dumps('Success')
 
 def locflaging(identity):
 	carthotel = get_key("user:" + str(identity) + ":assigned_rest")
 	locflag = get_key("user:" + str(identity) + ":cart:" + str(int(set_count("user:"+str(identity)+":confirmed_carts"))+1) + ":flag")
 	if locflag == '0':
 		return 0
+	if locflag == '2':
+		return 2
+	if locflag == '1':
+		return 1
 	elif locflag == '':
 		if carthotel != '':
 			return 1
@@ -91,7 +134,7 @@ def locflaging(identity):
 			return 2
 
 global link
-link = "35.154.196.70:7000"
+link = "https://1971f758.ngrok.io"
 
 def rpushl(key,value):
 	command = "redis-cli rpush " + key + " " + value

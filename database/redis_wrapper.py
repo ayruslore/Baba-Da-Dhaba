@@ -127,7 +127,7 @@ def rpushl(key,value):
 	commands.getoutput(command)
 
 global link
-link = "35.154.196.70:5000/"
+link = "https://bfe82c76.ngrok.io/"
 
 @app.route('/cart/<identity>/add/<d>')
 def change_cart(identity, d):
@@ -156,6 +156,7 @@ def change_cart(identity, d):
 			set_key("user:"+str(identity)+":calls",call)
 			set_key("user:"+str(identity)+":call-tags","add")
 			return {"call":call,"locflag":1,"tag":"add"}
+	print d
 	for item in d:
 		if(dishes_db[dishes_db["name"]==item][carthotel].tolist()[0]=="In"):
 			incr_hash_field_by(key,item,d[item])
@@ -180,15 +181,46 @@ def add_new_hotel(name,lat,longi):
     global Hotel_locations
     Hotel_locations[name] = Point(lat+" "+longi)
 
+def changestock(dname):
+	Hotel_locations = ['Residency_Road','Old_Airport_Road','Koramangala','Yelahanka']
+	global shutdown,dishes_db
+	count = len(shutdown)
+	if dname == 'Hotel':
+		if count == 4:
+			dishes_db['stock'] = dishes_db['stock'].replace('In','Out')
+		else:
+			dishes_db['stock'] = dishes_db['stock'].replace('Out','In')
+	else:
+		for ht in Hotel_locations:
+			if ht not in shutdown:
+				if(dishes_db[dishes_db['name']==dname][ht].tolist()[0]== 'Out'):
+					count = count + 1
+		if(count == 4):
+			dishes_db.loc[dishes_db['name']==dname,'stock'] = 'Out'
+		else:
+			dishes_db.loc[dishes_db['name']==dname,'stock'] = 'In'
+			with open('dishes15.txt','w') as outfile:
+				json.dump(dishes_db.to_json(orient='index'),outfile)
+
 @app.route('/shutdown_hotels/<hotel>')
 def shutdownhotels(hotel):
-	global shutdown
-	if hotel in shutdown:
-		dishes_db[hotel] = dishes_db[hotel].replace("Out","In")
-	else:
-		shutdown.append(hotel)
-		dishes_db[hotel] = dishes_db[hotel].replace("In","Out")
-	return json.dumps(shutdown)
+        global shutdown
+        if hotel in Hotel_locations:
+                u = 'http://0.0.0.0:7000/shutingdown/'
+                h ={ 'content-type': 'application/json; charset=utf-8'}
+                r = requests.get(url=u+hotel,headers=h)
+                if hotel in shutdown:
+                        dishes_db[hotel] = dishes_db[hotel].replace("Out","In")
+                        shutdown.remove(hotel)
+                        changestock('Hotel')
+                        return json.dumps({"status":"Hotel Alive!!"})
+                else:
+                     	shutdown.append(hotel)
+                        dishes_db[hotel] = dishes_db[hotel].replace("In","Out")
+                        changestock('Hotel')
+                        return json.dumps({"status":"Hotel is Shutdown"})
+        else:
+             	return  json.dumps({"status":"Hotel name in correct","data" : Hotel_locations.keys()})
 
 @app.route('/get_nearest_hotel/<lat>/<longi>')
 def get_nearest_hotel(lat,longi):
@@ -533,6 +565,31 @@ def get_menu():
 	global dishes_db
 	return dishes_db.to_json(orient="records")
 
+@app.route('/hotel_status/<hotel>')
+def gethotelstatus(hotel):
+        global shutdown
+        if hotel in shutdown:
+                return json.dumps("1")
+        else:
+                return json.dumps("0")
+
+@app.route('/get_user_menu/<identity>')
+def get_user_menu(identity):
+	global dishes_db, Hotel_locations
+	locflag = get_key("user:" + str(identity) + ":cart:" + str(int(set_count("user:"+str(identity)+":confirmed_carts"))+1) + ":flag")
+	if(locflag=='0'):
+		hotel = get_key("user:" + str(identity) + ":assigned_rest")
+		dish_db = dishes_db.copy(deep = True)
+		for hot in Hotel_locations:
+			if(hot!=hotel):
+				dish_db.drop([hot], axis = 1 , inplace = True)
+		dish_db['stock'] = dish_db[hotel]
+		dish_db.drop([hotel],axis= 1,inplace = True)
+		print dish_db
+		print dishes_db
+		return dish_db.to_json(orient = "records")
+	else:
+		return dishes_db.to_json(orient="records")
 
 @app.route('/loading_df/<filename>')
 def load_df(filename):
@@ -697,7 +754,6 @@ def store_the_dishes():
 				dishes_db_new["category"].append("breakfast")
 			else:
 				dishes_db_new["category"].append("HERO")
-
 			dishes_db_new["name"].append(dish.replace(" ","_").lower().replace("(","").replace(")",""))
 			dishes_db_new["stock"].append("In")
 			dishes_db_new["Old_Airport_Road"].append("In")
@@ -709,7 +765,6 @@ def store_the_dishes():
 				dishes_db_new["link"].append(s  + "bdd_logo.jpg")
 			else:
 				dishes_db_new["link"].append(s + dish.replace("nonveg","Non-Veg").replace("veg","Veg").replace(" ","-").replace("(","").replace(")","") + ".jpg")
-
 			if dish in dishes_dicti:
 				dishes_db_new["count"].append(dishes_dicti[dish.replace(" ","_").lower().replace("(","").replace(")","")])
 			else:
@@ -771,7 +826,7 @@ def getcalls(key):
 def saved_address(identity):
 	set_key("user:" + str(identity) + ":cart:" + str(int(set_count("user:"+str(identity)+":confirmed_carts"))+1) + ":flag","0")
 	expire_key_in("user:" + str(identity) + ":cart:" + str(int(set_count("user:"+str(identity)+":confirmed_carts"))+1) + ":flag",3600)
-	return {"tags":"saved_address"}
+	return {"calls":get_key("user:"+str(identity)+":calls"),"tags":get_key("user:"+str(identity)+":call-tags")}
 
 @app.route('/<identity>/set_address/<address>')
 def set_address(identity,address):
