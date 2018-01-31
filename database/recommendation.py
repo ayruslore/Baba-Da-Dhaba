@@ -37,7 +37,7 @@ def reco_filter1(v_n,base_ing,category,identity):
 		result = dishes_db[dishes_db[carthotel]=='In']
 		if v_n in ["veg","nonveg"]:
 			result = result[result["v_n"]==v_n]
-		if base_ing in ["chicken","mutton","dal","rice","chole","chocolate","paneer"]:
+		if base_ing in ["chicken","mutton","dal","rice","chole","chocolate","paneer","prawn"]:
 			result = result[result["base_ing"]==base_ing]
 		if category in ["roll","rice","combo","mini_combo","subzi","bread","starter","dessert"]:
 			result = result[result["category"]==category]
@@ -54,7 +54,7 @@ def reco_filter(v_n,base_ing,category,hotel):
 	result = dishes_db[dishes_db[hotel]=='In']
 	if v_n in ["veg","nonveg"]:
 		result = result[result["v_n"]==v_n]
-	if base_ing in ["chicken","mutton","dal","rice","chole","chocolate","paneer"]:
+	if base_ing in ["chicken","mutton","dal","rice","chole","chocolate","paneer","prawn"]:
 		result = result[result["base_ing"]==base_ing]
 	if category in ["roll","rice","combo","mini_combo","subzi","bread","starter","dessert"]:
 		result = result[result["category"]==category]
@@ -139,10 +139,6 @@ def locflaging(identity):
 
 global link
 link = "https://1971f758.ngrok.io"
-
-def rpushl(key,value):
-	command = "redis-cli rpush " + key + " " + value
-	commands.getoutput(command)
 
 @app.route('/<identity>/get_history_reco')
 def get_recommend_dishes2(identity):

@@ -92,6 +92,35 @@ def get_payment_status(identity):
 	result = payment(pay_key)
 	yield result["status"]
 
+def upsell(cart,hotel):
+	global dishes_db
+	dess = 0
+	cool = 0
+	for item in cart:
+		if(dishes_db[dishes_db["name"]==item]['course'].tolist()[0]=="Riveting Desserts"):
+			dess = dess + 1
+		if(dishes_db[dishes_db["name"]==item]['course'].tolist()[0]=="Super Coolants"):
+			cool = cool + 1
+	result = dishes_db[dishes_db[hotel]=='In']
+	if(cool==0 and dess ==0):
+		result1 = result[result["course"]=="Super Coolants"]
+		result = result1.append(result[result["course"]=="Riveting Desserts"],ignore_index=True)
+		result = {"reco": result['name'].tolist(),"links":result['link'].tolist(),"prices":result['price'].tolist()}
+		return {"upsell":3,"cards":result}
+	elif(cool == 0 and dess!=0):
+		result = result[result["course"]=="Super Coolants"]
+		result = {"reco": result['name'].tolist(),"links":result['link'].tolist(),"prices":result['price'].tolist()}
+		return {"upsell":1,"cards":result}
+	elif(cool!=0 and dess==0):
+		result = result[result["course"]=="Riveting Desserts"]
+		result = {"reco": result['name'].tolist(),"links":result['link'].tolist(),"prices":result['price'].tolist()}
+		return {"upsell":2,"cards":result}
+	else:
+		print "surya"
+		data = {"upsell":0,"cards":{"reco":[],"links":[],"prices":[]}}
+		print data
+		return data
+
 @app.route('/get_cart_price/<id>')
 def get_cart_price(id):
 	global dishes_db
@@ -99,6 +128,9 @@ def get_cart_price(id):
 	key = get_cart_id(id)
 	cart = get_hash(key)
 	prices = {"oos":[]}
+	sell = upsell(cart,carthotel)
+	prices['cards'] = sell['cards']
+	prices['upsell'] = sell['upsell']
 	total = 0
 	for item in cart:
 		if(dishes_db[dishes_db["name"]==item][carthotel].tolist()[0]=="In"):
@@ -120,14 +152,11 @@ def get_cart_price(id):
 		prices["flag"] = False
 	key = "rest_discount"
 	prices["discount"]=prices["total"]*int(get_key(key))/100
+	print prices
 	return prices
 
-def rpushl(key,value):
-	command = "redis-cli rpush " + key + " " + value
-	commands.getoutput(command)
-
 global link
-link = "https://bfe82c76.ngrok.io/"
+link = "http://35.154.196.70:5000/"
 
 @app.route('/cart/<identity>/add/<d>')
 def change_cart(identity, d):
@@ -296,8 +325,6 @@ def replace(identity,d):
 
 def get_details(identity):
 	data = {}
-	lat_long = get_key("user:"+str(identity)+":cur_address")
-	lat_long = lat_long.split(",")
 	key = "user:" + str(identity) + ":details"
 	data['address'] = get_hash_field(key,"address").replace("_"," ")
 	data['number'] = str(get_hash_field(key,"number")) #get_geocode(lat_long[0],lat_long[1])
@@ -308,7 +335,7 @@ def get_details(identity):
 	return data
 
 def randnum():
-	return random.randint(1,50)
+	return random.randint(1000000000,9999999999)
 
 @app.route('/discount/<num>')
 def disc(num):
@@ -337,9 +364,6 @@ def confirm10(identity):
 	key = "user:"+str(identity)+":ordered_items"
 	for item in order:
 		ss_member_increment_by(key,item,"1")
-	key = "user:"+str(identity)+":cart_status"
-	set_key(key,"pending")
-
 	for item in order:
 		ss_member_increment_by(key,item,"1")
 	key = "user:"+str(identity)+":history:category"
@@ -354,33 +378,31 @@ def confirm10(identity):
 	for item in order:
 		val =  dishes_db[dishes_db["name"] == item]["v_n"].tolist()[0]
 		ss_member_increment_by(key,val,"1")
-	key = "user:"+str(identity)+":cart_status"
+	orderId = randnum()
+	key = "user:"+str(orderId)+":cart_status"
 	set_key(key,"pending")
 	key = "user:" + str(identity) + ":tic"
 	set_key(key,get_time_stamp())
-
-	data = {"id":str(identity),"cart":order,"data":get_details(identity),"status":"pending"}
+	set_hash_field("OrderId",str(orderId),str(identity))
+	rpushl("user:" + str(identity)+ ":orders", str(orderId))
+	data = {"id":str(orderId),"cart":order,"data":get_details(identity),"status":"pending"}
 	print (data)
-
 	if closest in "Residency_Road":
-		orders_branch_R[str(identity)] = data
+		orders_branch_R[str(orderId)] = data
 
 	elif closest in "Yelahanka":
-		orders_branch_Y[str(identity)] = data
+		orders_branch_Y[str(orderId)] = data
 
 	elif closest in "Old_Airport_Road":
-		orders_branch_O[str(identity)] = data
+		orders_branch_O[str(orderId)] = data
 
 	elif closest in "Koramangala":
-		orders_branch_K[str(identity)] = data
-
+		orders_branch_K[str(orderId)] = data
 	global orders
-
-	orders[str(identity)] = data
+	orders[str(orderId)] = data
 	#write_order(data)
 	print(data)
-
-
+	return orderId
 
 '''
 0 pending
@@ -390,80 +412,79 @@ def confirm10(identity):
 4 delivered
 '''
 
-@app.route('/cart/<identity>/accept')
-def confirm4(identity):
-	key = "user:"+str(identity)+":cart_status"
+@app.route('/cart/<orderId>/accept')
+def confirm4(orderId):
+	key = "user:"+str(orderId)+":cart_status"
 	set_key(key,"order_accepted")
-	if str(identity) in orders_branch_O:
-		orders_branch_O[str(identity)]['status'] = 'order_accepted'
-	elif str(identity) in orders_branch_Y:
-		orders_branch_Y[str(identity)]['status'] = 'order_accepted'
-	elif str(identity) in orders_branch_R:
-		orders_branch_R[str(identity)]['status'] = 'order_accepted'
-	elif str(identity) in orders_branch_K:
-		orders_branch_K[str(identity)]['status'] = 'order_accepted'
-	orders[str(identity)]['status'] = 'order_accepted'
+	if str(orderId) in orders_branch_O:
+		orders_branch_O[str(orderId)]['status'] = 'order_accepted'
+	elif str(orderId) in orders_branch_Y:
+		orders_branch_Y[str(orderId)]['status'] = 'order_accepted'
+	elif str(orderId) in orders_branch_R:
+		orders_branch_R[str(orderId)]['status'] = 'order_accepted'
+	elif str(orderId) in orders_branch_K:
+		orders_branch_K[str(orderId)]['status'] = 'order_accepted'
+	orders[str(orderId)]['status'] = 'order_accepted'
 
-@app.route('/cart/<identity>/reject')
-def confirm5(identity):
-	key = "user:"+str(identity)+":cart_status"
+@app.route('/cart/<orderId>/reject')
+def confirm5(orderId):
+	delete_hash_field("OrderId",str(orderId))
+	remlist("user:" + str(identity)+ ":orders", str(orderId))
+	key = "user:"+str(orderId)+":cart_status"
 	set_key(key,"rejected")
-	if str(identity) in orders_branch_O:
-		orders_branch_O[str(identity)]['status'] = 'rejected'
-	elif str(identity) in orders_branch_Y:
-		orders_branch_Y[str(identity)]['status'] = 'rejected'
-	elif str(identity) in orders_branch_R:
-		orders_branch_R[str(identity)]['status'] = 'rejected'
-	elif str(identity) in orders_branch_K:
-		orders_branch_K[str(identity)]['status'] = 'rejected'
-	orders[str(identity)]['status'] = 'rejected'
-	orders.pop(str(identity),None)
-	orders_branch_O.pop(str(identity),None)
-	orders_branch_Y.pop(str(identity),None)
-	orders_branch_R.pop(str(identity),None)
-	orders_branch_K.pop(str(identity),None)
+	if str(orderId) in orders_branch_O:
+		orders_branch_O[str(orderId)]['status'] = 'rejected'
+	elif str(orderId) in orders_branch_Y:
+		orders_branch_Y[str(orderId)]['status'] = 'rejected'
+	elif str(orderId) in orders_branch_R:
+		orders_branch_R[str(orderId)]['status'] = 'rejected'
+	elif str(orderId) in orders_branch_K:
+		orders_branch_K[str(orderId)]['status'] = 'rejected'
+	orders[str(orderId)]['status'] = 'rejected'
+	orders.pop(str(orderId),None)
+	orders_branch_O.pop(str(orderId),None)
+	orders_branch_Y.pop(str(orderId),None)
+	orders_branch_R.pop(str(orderId),None)
+	orders_branch_K.pop(str(orderId),None)
 
-
-@app.route('/cart/<identity>/in_kitchen')
-def confirm6(identity):
-	key = "user:"+str(identity)+":cart_status"
+@app.route('/cart/<orderId>/in_kitchen')
+def confirm6(orderId):
+	key = "user:"+str(orderId)+":cart_status"
 	set_key(key,"in_kitchen")
-	if str(identity) in orders_branch_O:
-		orders_branch_O[str(identity)]['status'] = 'in_kitchen'
-	elif str(identity) in orders_branch_Y:
-		orders_branch_Y[str(identity)]['status'] = 'in_kitchen'
-	elif str(identity) in orders_branch_R:
-		orders_branch_R[str(identity)]['status'] = 'in_kitchen'
-	elif str(identity) in orders_branch_K:
-		orders_branch_K[str(identity)]['status'] = 'in_kitchen'
-	orders[str(identity)]['status'] = 'in_kitchen'
+	if str(orderId) in orders_branch_O:
+		orders_branch_O[str(orderId)]['status'] = 'in_kitchen'
+	elif str(orderId) in orders_branch_Y:
+		orders_branch_Y[str(orderId)]['status'] = 'in_kitchen'
+	elif str(orderId) in orders_branch_R:
+		orders_branch_R[str(orderId)]['status'] = 'in_kitchen'
+	elif str(orderId) in orders_branch_K:
+		orders_branch_K[str(orderId)]['status'] = 'in_kitchen'
+	orders[str(orderId)]['status'] = 'in_kitchen'
 
-
-@app.route('/cart/<identity>/out_for_delivery/<contact>')
-def confirm7(identity, contact):
-	key = "user:"+str(identity)+":cart_status"
+@app.route('/cart/<orderId>/out_for_delivery/<contact>')
+def confirm7(orderId, contact):
+	key = "user:"+str(orderId)+":cart_status"
 	set_key(key,"out_for_delivery")
-	key = "user:"+str(identity)+":dboy"
+	key = "user:"+str(orderId)+":dboy"
 	set_key(key,str(contact))
 	key = "delivery_boy:" + str(contact) + ":deliveries"
-	set_add(key,str(identity))
-	if str(identity) in orders_branch_O:
-		orders_branch_O[str(identity)]['status'] = 'out_for_delivery'
-	elif str(identity) in orders_branch_Y:
-		orders_branch_Y[str(identity)]['status'] = 'out_for_delivery'
-	elif str(identity) in orders_branch_R:
-		orders_branch_R[str(identity)]['status'] = 'out_for_delivery'
-	elif str(identity) in orders_branch_K:
-		orders_branch_K[str(identity)]['status'] = 'out_for_delivery'
-	orders[str(identity)]['status'] = 'out_for_delivery'
+	set_add(key,str(orderId))
+	if str(orderId) in orders_branch_O:
+		orders_branch_O[str(orderId)]['status'] = 'out_for_delivery'
+	elif str(orderId) in orders_branch_Y:
+		orders_branch_Y[str(orderId)]['status'] = 'out_for_delivery'
+	elif str(orderId) in orders_branch_R:
+		orders_branch_R[str(orderId)]['status'] = 'out_for_delivery'
+	elif str(orderId) in orders_branch_K:
+		orders_branch_K[str(orderId)]['status'] = 'out_for_delivery'
+	orders[str(orderId)]['status'] = 'out_for_delivery'
 
-
-
+'''
 @app.route('/get_data_for_delivery/<contact>')
 def get_data(contact):
 	key = "delivery_boy:" + str(contact) + ":deliveries"
-	ids = set_members(key)
-	ids = ids.split()
+	orderids = set_members(key)
+	orderids = orderids.split()
 	result = {}
 	for identity in ids:
 		details = {}
@@ -479,46 +500,36 @@ def get_data(contact):
 		key = "user:" + str(identity) + ":cur_address"
 		details["address"] = get_key(key)
 		result[name] = details
-	yield json.dumps(result)
+	yield json.dumps(result)'''
 
-@app.route('/cart/<identity>/delivered')
-def confirm8(identity):
-	key = "user:"+str(identity)+":cart_status"
+@app.route('/cart/<orderId>/delivered')
+def confirm8(orderId):
+	key = "user:"+str(orderId)+":cart_status"
 	set_key(key,"delivered")
+	identity = get_hash_field("OrderId",str(orderId))
+	remlist("user:" + str(identity)+ ":orders", str(orderId))
+	delete_hash_field("OrderId",str(orderId))
 	key = "user:"+str(identity)+":assigned_rest"
 	closest = get_key(key)
-	key = "user:"+str(identity)+":cart:price"
-	total = get_key(key)
 	key_increment_by(daily_confirmed_carts,1)
-	key_increment_by(daily_converted_value,total)
+	key_increment_by(daily_converted_value,orders['data']['total']-orders['data']['discount'])
 	if closest in "Residency_Road":
 		key_increment_by(r_converted_carts,1)
-		key_increment_by(r_converted_value,total)
+		key_increment_by(r_converted_value,orders['data']['total']-orders['data']['discount'])
 	elif closest in "Yelahanka":
 		key_increment_by(y_converted_carts,1)
-		key_increment_by(y_converted_value,total)
+		key_increment_by(y_converted_value,orders['data']['total']-orders['data']['discount'])
 	elif closest in "Old_Airport_Road":
 		key_increment_by(o_converted_carts,1)
-		key_increment_by(o_converted_value,total)
+		key_increment_by(o_converted_value,orders['data']['total']-orders['data']['discount'])
 	elif closest in "Koramangala":
 		key_increment_by(k_converted_carts,1)
-		key_increment_by(k_converted_value,total)
-	orders.pop(str(identity),None)
-	orders_branch_O.pop(str(identity),None)
-	orders_branch_Y.pop(str(identity),None)
-	orders_branch_R.pop(str(identity),None)
-	orders_branch_K.pop(str(identity),None)
-	if str(identity) in orders_branch_O:
-		orders_branch_O[str(identity)]['status'] = 'delivered'
-	elif str(identity) in orders_branch_Y:
-		orders_branch_Y[str(identity)]['status'] = 'delivered'
-	elif str(identity) in orders_branch_R:
-		orders_branch_R[str(identity)]['status'] = 'delivered'
-	elif str(identity) in orders_branch_K:
-		orders_branch_K[str(identity)]['status'] = 'delivered'
-	if str(identity) in orders:
-		orders[str(identity)]['status'] = 'delivered'
-
+		key_increment_by(k_converted_value,orders['data']['total']-orders['data']['discount'])
+	orders.pop(str(orderId),None)
+	orders_branch_O.pop(str(orderId),None)
+	orders_branch_Y.pop(str(orderId),None)
+	orders_branch_R.pop(str(orderId),None)
+	orders_branch_K.pop(str(orderId),None)
 
 @app.route('/geniidata')
 def geniidata():
@@ -538,13 +549,20 @@ def geniidata():
 
 @app.route('/cart/<identity>/status')
 def confirm3(identity):
-	key = "user:"+str(identity)+":cart_status"
+	orders = getlist("user:" + str(identity)+ ":orders")
 	result = {}
-	if(key_exists(key)):
-		result['status'] = get_key(key)
-		if(get_key(key)=='out_for_delivery' or get_key(key)=='delivered'):
-			key = "user:"+str(identity)+":dboy"
-			result['dboy'] = get_key(key)
+	count = 0
+	if len(orders) != 0:
+		for x in orders:
+			count = count + 1
+			result[count] = {}
+			result[count]['orderid'] = x
+			key = "user:"+str(x)+":cart_status"
+			if(key_exists(key)):
+				result[count]['status'] = get_key(key)
+				if(get_key(key)=='out_for_delivery' or get_key(key)=='delivered'):
+					key = "user:"+str(x)+":dboy"
+					result[count]['dboy'] = get_key(key)
 		yield json.dumps(result)
 	else:
 		yield "Status not set"
@@ -580,6 +598,7 @@ def last_cart(identity):
 @app.route('/get_menu')
 def get_menu():
 	global dishes_db
+	#result = dishes_db[dishes_db['stock']=='In']
 	return dishes_db.to_json(orient="records")
 
 @app.route('/hotel_status/<hotel>')
@@ -602,11 +621,11 @@ def get_user_menu(identity):
 				dish_db.drop([hot], axis = 1 , inplace = True)
 		dish_db['stock'] = dish_db[hotel]
 		dish_db.drop([hotel],axis= 1,inplace = True)
-		print dish_db
-		print dishes_db
+		dish_db = dish_db[dish_db['stock']=='In']
 		return dish_db.to_json(orient = "records")
 	else:
-		return dishes_db.to_json(orient="records")
+		result = dishes_db[dishes_db['stock']=='In']
+		return result.to_json(orient="records")
 
 @app.route('/loading_df/<filename>')
 def load_df(filename):
@@ -696,7 +715,7 @@ def store_the_dishes():
 ["35","Veg","U"],"Wheat Tawa Roti":
 ["17","Veg","U"]},"Riveting Desserts":{"Phirni":
 ["90","Veg","U"],"Kheer":
-["90","Veg","U"],"B&W Chocolate Cake Eggless":
+["90","Veg","U"],"B and W Chocolate Cake Eggless":
 ["140","Veg","U"]},"Super Coolants":{"Shikanji":
 ["30", "Veg","U"],"Masala Chaas":
 ["40", "Veg","U"],"Lassi Sweet":
@@ -918,7 +937,7 @@ def get_cart_price1(id):
 	print(key)
 	cart = get_hash(key)
 	prices = {}
-	prices["cart_id"] = key
+	prices["cart_id"] = str(key)
 	total = 0
 	for item in cart:
 		if(int(cart[item])>0):
@@ -937,7 +956,7 @@ def get_cart_price1(id):
 def get_new_reciept(dic):
 	data = json.loads(dic)
 	identity = data["Id"]
-	confirm10(identity)
+	orderId = confirm10(identity)
 	lat_long = get_key("user:"+str(identity)+":cur_address")
 	lat_long = lat_long.split(",")
 	key = "user:" + str(identity) + ":details"
@@ -949,17 +968,18 @@ def get_new_reciept(dic):
 	#data['number'] = str(get_hash_field(key,"number")) #get_geocode(lat_long[0],lat_long[1])
 	total = get_cart_price1(identity)
 	data['cart'] = total
+	data['cart']['cart_id'] = str(orderId)
 	data["address"] = data["address"].replace("_"," ")
 	data['name'] = data["name"].replace("_"," ")
 	#data['discount']
-	key = "user:"+str(identity)+":cart_status"
+	key = "user:"+str(orderId)+":cart_status"
 	data['order_status'] = get_key(key)
 	yield json.dumps(data)
 
 @app.route('/get_receipt/<identity>')
 def get_reciept(identity):
 	data = {}
-	confirm10(identity)
+	orderId = confirm10(identity)
 	lat_long = get_key("user:"+str(identity)+":cur_address")
 	lat_long = lat_long.split(",")
 	key = "user:" + str(identity) + ":details"
@@ -968,7 +988,7 @@ def get_reciept(identity):
 	total = get_cart_price1(identity)
 	data['cart'] = total
 	data['name'] = get_hash_field(key,"name").replace("_"," ")
-	key = "user:"+str(identity)+":cart_status"
+	key = "user:"+str(orderId)+":cart_status"
 	data['order_status'] = get_key(key)
 	yield json.dumps(data)
 
@@ -1047,7 +1067,7 @@ def get_user_def(identity):
 
 def get_reciept1(identity):
 	data = {}
-	confirm10(identity)
+	orderId = confirm10(identity)
 	lat_long = get_key("user:"+str(identity)+":cur_address")
 	lat_long = lat_long.split(",")
 	key = "user:" + str(identity) + ":details"
@@ -1056,7 +1076,7 @@ def get_reciept1(identity):
 	total = get_cart_price1(identity)
 	data['cart'] = total
 	data['name'] = get_hash_field(key,"name").replace("_"," ")
-	key = "user:"+str(identity)+":cart_status"
+	key = "user:"+str(orderId)+":cart_status"
 	data['order_status'] = get_key(key)
 	return data
 
@@ -1072,7 +1092,7 @@ def bypass(identity):
 def set_confirm(identity,d):
 	d = json.loads(d)
 	key = "user:" + str(identity) + ":details"
-	confirm10(identity)
+	orderId = confirm10(identity)
 	set_hash_field(key,"number",str(d["number"]))
 	set_hash_field(key,"address",d["address"].replace(" ","_"))
 	set_hash_field(key,"name",d["name"].replace(" ","_"))

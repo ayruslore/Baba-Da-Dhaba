@@ -50,6 +50,22 @@ def payment(paymentkey):
 	#print client.payment.all()
 	return client.payment.fetch(paymentkey)
 
+def rpushl(key,value):
+    command = "redis-cli rpush " + key + " " + value
+    commands.getouput(command)
+
+def getlist(key):
+    command = "redis-cli lrange " + key + " 0 -1"
+    l = commands.getoutput(command)
+    l = l.split('\n')
+    return l
+
+def remlist(key,value):
+    command = "redis-cli llen " + key
+    le = commands.getouput(command)
+    command = "redis-cli lrem " + key + " " + str(le) + " " + value
+    commands.getouput(command)
+
 def set_hash(key,d):
 	command = "redis-cli  "
 	command = command + "HMSET " + key + " "

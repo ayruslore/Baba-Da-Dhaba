@@ -8,7 +8,7 @@ function getMenu(){
   }
   $.ajax({
     type: "GET",
-    url: redisDb+"/get_user_menu"/ + uid,
+    url: redisDb+"/get_menu",
     success: function(data){
       var x=JSON.parse(data);
       console.log(x);
