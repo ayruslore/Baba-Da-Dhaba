@@ -873,12 +873,12 @@ def set_address(identity,address):
 	set_key(key,str(address).replace(" ","_"))
 	key = "user:"+str(identity)+":addresses"
 	ss_member_increment_by(key,str(address).replace(" ","_"),"1")
-	set_key("user:" + str(identity) + ":cart:" + str(int(set_count("user:"+str(identity)+":confirmed_carts"))+1) + ":flag","0")
 	expire_key_in("user:" + str(identity) + ":cart:" + str(int(set_count("user:"+str(identity)+":confirmed_carts"))+1) + ":flag",3600)
 	if(q!=None):
 		key = "user:"+str(identity)+":assigned_rest"
 		if q not in shutdown:
 			set_key(key,q)
+			set_key("user:" + str(identity) + ":cart:" + str(int(set_count("user:"+str(identity)+":confirmed_carts"))+1) + ":flag","0")
 			det = {"area":q,"calls":get_key("user:"+str(identity)+":calls"),"tags":get_key("user:"+str(identity)+":call-tags")}
 			return det
 		else:

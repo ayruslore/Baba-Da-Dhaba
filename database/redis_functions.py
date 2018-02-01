@@ -52,7 +52,7 @@ def payment(paymentkey):
 
 def rpushl(key,value):
     command = "redis-cli rpush " + key + " " + value
-    commands.getouput(command)
+    commands.getoutput(command)
 
 def getlist(key):
     command = "redis-cli lrange " + key + " 0 -1"

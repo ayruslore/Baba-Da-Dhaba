@@ -11,7 +11,7 @@
     var request_1 = Promise.promisifyAll(require("request"));
     var activelink = 'http://35.154.196.70:5000/';
     var recommendationLink = 'http://35.154.196.70:7000/';
-    let token = 'EAADg7MiZAzmsBANMOZBAAugezblf4xVZCIcvKxIRpZA1lMzYwkzEVtcDblold9MaZAAK1VcLZAIJ3lErqd8xjn9StJFI5N3e3eaT4lVeck2FpfTfQNqNGIefj6pm4EP6YqrCdJYqXBhjsKoTzZCa5rZCZCc0pqPU98BTLIUfVLkxPrwZDZD';
+   let token='EAADg7MiZAzmsBABneH1TqGI1Ol5ZBI0ZAH8ILEZBZBrkcN1RiRW79vha68NKDbrDEIKkDvi28lxzCpK1FqNlCdlZBiEhaLZAChYGqZC6qvZBGi6Ll5ROd8ZBjNXZCUjzZBHZC7icSrJrUkIR51D44aAriQZAvo552ZAlvHZCi5ZBvhZAChReVXqwZDZD';
 
 
     // The rest of the code implements the routes for our Express server.
