@@ -10,9 +10,9 @@
     var dataoptions = {min:0,max:9,integer:true};
     var Promise = require("bluebird");
     var request_1 = Promise.promisifyAll(require("request"));
-    var activelink = 'http://35.154.196.70:4000/';
+    var activelink = 'http://35.154.196.70:5000/';
     var recommendationLink = 'http://35.154.196.70:7000/';
-    let token = 'EAAEms8xEwDABAGnpfEJKZC3BxdbW7UmrDbdovKMnMECE9b6EsfRjmiYY9OB90wrNr1eBZAEtDTUOLaIgP9ZCNHgZBXRQM0iotdFw44Jjpdl60yoRxrhTu9nsmBqNPSiQ1fyAQHLA6u6hZBVqqDWvRUZBZBAkwX12aMGV4THaQKhegZDZD';
+    let token = 'EAADg7MiZAzmsBAO3ype7zi6ecNvZCpVL0ZB4ZAZBV0MmOmZARSSP7M6lVv4e0pUM2oWJE4NhmD3eZBPC4TOndPPPKnha4xmYi9laRRA6lRjhuTcvZCvUYF4hUD3QvZAOdfrIJvqcStha7UCxL948kpNONNSYwtU9Rc0CW5ZAZA6uwAkZBAZDZD';
     var jokeslist = ["A sardarni asked his lover, Santa Singh, 'Santa darling, if we get engaged will you give me a ring?'. 'Sure', said Santa, 'what's your phone number?'",
         "One fine day a girl proposed to a sardar and the sardar denied simply saying that in our family we marry only our relatives my mom married my dad, my brother married my bhabhi, my uncle married my aunt and so on. So, please excuse me !!!!!",
         "A sardarji goes to a hotel and eats heartily. After eating he goes to wash his hands but starts washing the basin instead. The manager comes running and asks him, 'Prahji, aap kya kar rahe ho?' To this sardarji replies,\n'oye, tumne hi to idhar board lagaya hai, Wash Basin'",
@@ -177,7 +177,7 @@
                 }
                 callrecommend(final, sender);
             } else if (response.result.action === 'order.webview') {
-                var link = "http://genii.ai/activebots/Babadadhabatesttest" + "?userId=" + sender;
+                var link = "http://genii.ai/activebots/Babadadhaba" + "?userId=" + sender;
                 sendButton(sender, ["web_url"], "what would to like to have?", [link], ["Show Menu!"], "tall");
                 //open webview
             } else if (response.result.action === 'input.welcome') {
@@ -227,7 +227,7 @@
                 var operation=activelink+'menu_loc/'+sender;
                 console.log(operation+'daa')
                 callSendRedisapi('menu',operation,sender,"what would you like to have?");
-              
+
             } else if (response.result.action === 'order.cancel') {
                 //cancel
                 var cancel = 'cart/' + sender + '/cancel';
@@ -407,7 +407,7 @@
                 }, (error, response) => {
                     if (error) {
                         console.log('Error sending message: ', error);
-                    } else if (response.body.error) {   
+                    } else if (response.body.error) {
                         console.log('Error: ', response.body.error);
                     }
                 });
@@ -464,7 +464,7 @@
         if (payload === 'Recommend') {
             callrecommend(recommendationLink + sender + '/get_history_reco', sender);
         } else if (payload === 'Show_menu') {
-            var link = "http://genii.ai/activebots/Babadadhabatesttest" + "?userId=" + sender;
+            var link = "http://genii.ai/activebots/Babadadhaba" + "?userId=" + sender;
             sendButton(sender, ["web_url"], "what would to like to have?", [link], ["Show Menu!"], "tall");
         } else if (payload === 'Show_cart') {
             var show = 'get_cart_price/' + sender;
@@ -790,7 +790,7 @@
             quantity: quantity,
             price: price,
             currency: "INR",
-            image_url: "http://genii.ai/activebots/Babadadhabatest/img/db/bdd_logo.jpg"
+            image_url: "http://genii.ai/activebots/Babadadhaba/img/db/bdd_logo.jpg"
         }
         return elements;
     }
@@ -831,7 +831,7 @@
                 console.log(typeof response.locflag)
                 if (response.locflag == 0) {
                     console.log(response.locflag);
-                    var link = "http://genii.ai/activebots/Babadadhabatest?userId=" + sender;
+                    var link = "http://genii.ai/activebots/Babadadhaba?userId=" + sender;
                     //  sendButton(sender,["postback","postback","web_url"],message,["Show_specials","Recommend",link],["Specials", "Recommendations", "Menu"],"tall");
                     var response = JSON.parse(res.body);
                     console.log(response);
@@ -839,10 +839,10 @@
                     if (response.oos.length != 0) {
                         var aiText = "Sorry, we dont have " + toTitleCase(response.oos[0].replace(/_/g, " ")) + " right now";
 
-                        var link = "http://genii.ai/activebots/Babadadhabatest?userId=" + sender;
+                        var link = "http://genii.ai/activebots/Babadadhaba?userId=" + sender;
                         sendButton(sender, ["postback", "postback", "web_url"], aiText, ["Show_specials", "Recommend", link], ["Specials", "Recommendations", "Menu"], "tall");
                     } else {
-                        var link = "http://genii.ai/activebots/Babadadhabatest?userId=" + sender;
+                        var link = "http://genii.ai/activebots/Babadadhaba?userId=" + sender;
                         console.log("hfuiscnsc");
                         sendButton(sender, ["postback", "web_url", "postback"], Text1, ["Show_cart", link, "Confirm_order"], ["Show cart", "Menu", "Confirm order"], "tall");
                     }
@@ -861,10 +861,10 @@
 
 
             } else if (tag === 'payment') {
-                link = "http://genii.ai/activebots/Babadadhabatest/payment.html?userid" + sender;
+                link = "http://genii.ai/activebots/Babadadhaba/payment.html?userid" + sender;
                 sendButton(sender, ["web_url"], 'how would you like to pay?', [link], ["Payments"], "tall");
             } else if (tag === 'cancel') {
-                var link = "http://genii.ai/activebots/Babadadhabatest?userId=" + sender;
+                var link = "http://genii.ai/activebots/Babadadhaba?userId=" + sender;
                 sendButton(sender, ["postback", "postback", "web_url"], Text1, ["Show_specials", "Recommend", link], ["Specials", "Recommendations", "Menu"], "tall");
             } else if (tag === 'remove') {
                 sendButton(sender, ["postback", "postback", "postback"], Text1, ["Show_cart", "Clear_cart", "Confirm_order"], ["Show cart", "Clear cart", "Confirm order"], "tall");
@@ -878,12 +878,12 @@
                 console.log("res.body");
                 var response = JSON.parse(res.body);
                 aiText = "Satsriakaal " + response.first_name + " ji!! It's nice to see you! Welcome to  Baba da Dhaba! I am the Transformer Sardar, the Chrome-Chested Colossal Chef who improves with experience. Tell me where I'll be bringing your food today.";
-                /*var link="http://genii.ai/activebots/Babadadhabatest?userId=" + sender;
+                /*var link="http://genii.ai/activebots/Babadadhaba?userId=" + sender;
                 sendButton(sender,["postback","postback","web_url"],aiText,["Show_specials","Recommend",link],["Specials", "Recommendations", "Menu"],"tall");*/
                 CustomQuickreply(sender, aiText,1);
             } else if (tag === 'New_user') {
                 aiText = "Thank you, How may I help you?"
-                var link = "http://genii.ai/activebots/Babadadhabatest?userId=" + sender;
+                var link = "http://genii.ai/activebots/Babadadhaba?userId=" + sender;
                 sendButton(sender, ["postback", "postback", "web_url"], aiText, ["Show_specials", "Recommend", link], ["Specials", "Recommendations", "Menu"], "tall");
             } else if (tag === 'existing') {
                 console.log(res.body);
@@ -894,7 +894,7 @@
                 } else if (response.usual === "Nothing") {
                     if(response.locflag===0){
                     aiText = "Satsriakaal " + response.name + " ji!! It's nice to see you back! Let me take you on a Yummy-Shummy Trip. What would you like to have?";
-                    var link = "http://genii.ai/activebots/Babadadhabatest?userId=" + sender;
+                    var link = "http://genii.ai/activebots/Babadadhaba?userId=" + sender;
                     // sendTextMessage(sender)
                     sendButton(sender, ["postback", "postback", "web_url"], aiText, ["Show_specials", "Recommend", link], ["Specials", "Recommendations", "Menu"], "tall");
                     }
@@ -923,7 +923,7 @@
                         } else {
                             message = "Satsriakaal " + name + " ji. It's nice to see you again! I see that you havent ordered from us in over " + time + " days. It's nice to see you back. Here are your ususals! Be sure to tell me if I can help you out with anything else!!";
                         }
-                        var link = "http://genii.ai/activebots/Babadadhabatest?userId=" + sender;
+                        var link = "http://genii.ai/activebots/Babadadhaba?userId=" + sender;
                         sendButton(sender, ["postback", "postback", "web_url"], message, ["Show_specials", "Recommend", link], ["Specials", "Recommendations", "Menu"], "tall");
                         //sendTextMessage(message);
                         var i;
@@ -964,7 +964,7 @@
                 console.log(res.body);
                 var response = JSON.parse(res.body);
                 if(response.locflag==0){
-                    var link = "http://genii.ai/activebots/Babadadhabatest" + "?userId=" + sender;
+                    var link = "http://genii.ai/activebots/Babadadhaba" + "?userId=" + sender;
                     sendButton(sender, ["web_url"], "what would to like to have?", [link], ["Show Menu!"], "tall");
                 }
                 else if(response.locflag==1){
@@ -982,7 +982,7 @@
                     callSendRedisapi("greeting", link, sender, "nothing");
                 } else if (response.usual === "Nothing") {
                     aiText = "I notice you haven't ordered anything with us yet. You should really try some of our food. We dont know your usuals yet.";
-                    var link = "http://genii.ai/activebots/Babadadhabatest?userId=" + sender;
+                    var link = "http://genii.ai/activebots/Babadadhaba?userId=" + sender;
                     sendTextMessage(sender, aiText);
                     //  sendButton(sender,["postback","postback","web_url"],aiText,["Show_specials","Recommend",link],["Specials", "Recommendations", "Menu"],"tall");
                 } else {
@@ -1031,7 +1031,7 @@
                     var a=response[keys]["orderid"]
                     var status=response[keys]["status"]
                     console.log(a+status)
-                
+
                 //var status = response.status;
                 if (status === 'order_accepted') {
                     str+="Your order with ID" +a+" has been accepted.\n";
@@ -1060,7 +1060,7 @@
 
                 console.log(Text1);
                 console.log(res.body);
-                link = "http://genii.ai/activebots/Babadadhabatest/payment.html?userid" + sender;
+                link = "http://genii.ai/activebots/Babadadhaba/payment.html?userid" + sender;
                 sendButton(sender, ["web_url", "postback"], Text1, [link, "Clear_cart"], ["Payment", "Clear cart"], "tall");
                 if (res.body === "True") {
 
@@ -1068,7 +1068,7 @@
 
                 } else {
                     aiText = "Sorry,your cart is empty.Would you like to order something?";
-                    var link = "http://genii.ai/activebots/Babadadhabatest?userId=" + sender;
+                    var link = "http://genii.ai/activebots/Babadadhaba?userId=" + sender;
                     console.log("else codntiotn");
                     sendButton(sender, ["postback", "postback", "web_url"], aiText, ["Show_specials", "Recommend", link], ["Specials", "Recommendations", "Menu"], "tall");
                 }
@@ -1092,7 +1092,7 @@
                     console.log(response.used_coins)
                     sendReciept(sender, response.cart.discount, response.name, response.cart.total, keys, quantity, price, response.address, response.name, response.number,response.cart.cart_id,response.used_coins);
                     console.log("gvhbknj");
-                    
+
                     if(response.used_coins!=0){
 			var num = rn(dataoptions);
                         sendTextMessage(sender,"Ghaint! You've used " + response.used_coins + " coins . Also, for being a punjabi lover and our " + response.type + " user, we've added " + response.earned_coins + " coins to your BDD wallet. \n\n" + "Here's a joke for you:\n"+jokeslist[num]);
@@ -1109,7 +1109,7 @@
                     sendButton(sender, ["postback"], "Your order status is: " + toTitleCase(response.order_status), ["check_status"], ["Check Status"], "tall");
                 } else {
                     aiText = "Sorry,your cart is empty.Would you like to order something?";
-                    var link = "http://genii.ai/activebots/Babadadhabatest?userId=" + sender;
+                    var link = "http://genii.ai/activebots/Babadadhaba?userId=" + sender;
                     console.log("else codntiotn");
                     sendButton(sender, ["postback", "postback", "web_url"], aiText, ["Show_specials", "Recommend", link], ["Specials", "Recommendations", "Menu"], "tall");
                 }
@@ -1149,7 +1149,7 @@
             console.log(res.body);
             if ((res.body === '{}') || (JSON.parse(res.body).total === 0)) {
                 aiText = "I am sorry but you have no items in your cart";
-                var link = "http://genii.ai/activebots/Babadadhabatest?userId=" + sender;
+                var link = "http://genii.ai/activebots/Babadadhaba?userId=" + sender;
                 sendButton(sender, ["postback", "postback", "web_url"], aiText, ["Show_specials", "Recommend", link], ["Specials", "Recommendations", "Menu"], "tall");
             } else {
                 var dict = JSON.parse(res.body)
@@ -1181,10 +1181,10 @@
                 }
 
 
-                    
 
 
-                
+
+
                 c += "Total Value: " + dict['total'] + '\n';
                 console.log(dict['coins'][0]);
 
@@ -1194,7 +1194,7 @@
                     }
                 //  c+=d;
                 //c+="You can add or remove dishes by texting us the name and quantity of the dish or using the below button!";
-                var link = "http://genii.ai/activebots/Babadadhabatest?userId=" + sender;
+                var link = "http://genii.ai/activebots/Babadadhaba?userId=" + sender;
                 sendButton(sender, ["web_url", "postback", "postback"], c, [link, "Clear_cart", "Confirm_order"], ["Add/Change Dishes", "Clear cart", "Confirm order"], "tall");
 
 
@@ -1221,7 +1221,7 @@
             }
 
             else if(response.tags==='menu'){
-                 var link = "http://genii.ai/activebots/Babadadhabatest" + "?userId=" + sender;
+                 var link = "http://genii.ai/activebots/Babadadhaba" + "?userId=" + sender;
                  sendButton(sender, ["web_url"], "what would to like to have?", [link], ["Show Menu!"], "tall");
             }
 
@@ -1233,7 +1233,7 @@
             } else if (response.tags === 'New_user' || response.tags==='saved_address') {
                 console.log('fshkjsf')
                 aiText = "Thank you, How may I help you?"
-                var link = "http://genii.ai/activebots/Babadadhabatest?userId=" + sender;
+                var link = "http://genii.ai/activebots/Babadadhaba?userId=" + sender;
                 sendButton(sender, ["postback", "postback", "web_url"], aiText, ["Show_specials", "Recommend", link], ["Specials", "Recommendations", "Menu"], "tall");
             } else if (response.tags === 'recommend' || response.tags === 'specials' || response.tags==='recommend_specific') {
                 var operation = response.calls
@@ -1322,33 +1322,33 @@
             if (upsell===0)
             {
                 msg+="Are you sure you want to confirm this order?";
-                var link = "http://genii.ai/activebots/Babadadhabatest/payment.html?userid=" + sender;
+                var link = "http://genii.ai/activebots/Babadadhaba/payment.html?userid=" + sender;
                 sendButton(sender, ["web_url", "postback"], msg, [link ,"Clear_cart"], ['Payments', "Clear cart"], "tall");
             }
             else if (upsell==1){
                 msg+="Are you sure you want to confirm this order? I suggest that you try out one of our super coolants made at a 1000RPM.";
-                var link = "http://genii.ai/activebots/Babadadhabatest/payment.html?userid=" + sender;
+                var link = "http://genii.ai/activebots/Babadadhaba/payment.html?userid=" + sender;
                 sendButton(sender, ["web_url", "postback"], msg, [link ,"Clear_cart"], ['Payments', "Clear cart"], "tall");
                 dataRequest(sender,reco,images);
-            } 
+            }
             else if(upsell==2){
                 msg+="Are you sure you want to confirm this order? I suggest that you try out one rivting desserts to end this meal right.";
-                var link = "http://genii.ai/activebots/Babadadhabatest/payment.html?userid=" + sender;
+                var link = "http://genii.ai/activebots/Babadadhaba/payment.html?userid=" + sender;
                 sendButton(sender, ["web_url", "postback"], msg, [link ,"Clear_cart"], ['Payments', "Clear cart"], "tall");
                  dataRequest(sender,reco,images);
             }
             else if(upsell==3){
                 msg+="Are you sure you want to confirm this order? I suggest that you try out one of our super coolants made at a 1000RPM or one of our riveting desserts.";
-                var link = "http://genii.ai/activebots/Babadadhabatest/payment.html?userid=" + sender;
+                var link = "http://genii.ai/activebots/Babadadhaba/payment.html?userid=" + sender;
                 sendButton(sender, ["web_url", "postback"], msg, [link ,"Clear_cart"], ['Payments', "Clear cart"], "tall");
                  dataRequest(sender,reco,images);
             }
 
 
-         }  
+         }
          else {
             aiText = "Sorry,your cart is empty.Would you like to order something?";
-            var link = "http://genii.ai/activebots/Babadadhabatest?userId=" + sender;
+            var link = "http://genii.ai/activebots/Babadadhaba?userId=" + sender;
             console.log("else codntiotn");
             sendButton(sender, ["postback", "postback", "web_url"], aiText, ["Show_specials", "Recommend", link], ["Specials", "Recommendations", "Menu"], "tall");
         }
@@ -1419,4 +1419,3 @@
     var server = app.listen(process.env.PORT || 3000, function() {
         console.log("Listening on port %s", server.address().port);
     });
-

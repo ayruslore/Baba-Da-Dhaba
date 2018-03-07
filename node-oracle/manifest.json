@@ -1,6 +1,6 @@
 {
 "runtime":{
-"majorVersion":"6"
+"majorVersion":"8"
 },
 "command": "node ./bin/www",
 "release": {},
