@@ -5,18 +5,24 @@ function done(){
   nameUser=document.getElementsByName('name')[0].value;
   phoneUser=Number(document.getElementsByName('phone')[0].value);
   addUser=document.getElementsByName('address')[0].value;
+  coins=Number(document.getElementsByName('coins')[0].value);
+  //console.log("ffd"+data['coins']);
   //addUser=addUser.replace(\\g, '-');
   if(nameUser=="" | addUser=="" | phoneUser=="")
     alert("Fill in the details to proceed.");
   else if(getlength(phoneUser)!=10){
     alert("Invald phone number!");
   }
+  else if(coins>150){
+	alert("You can not use more than 150 coins at one time.");
+	}
   else{
     if(nameUser!="" & addUser!=""){
       var userData={
         "name": nameUser,
         "number": phoneUser,
-        "address": addUser
+        "address": addUser,
+	"coins": coins
       };
       $.ajax({
         type: "GET",
@@ -25,7 +31,8 @@ function done(){
           'Id': uid,
           "name": nameUser,
           "number": phoneUser,
-          "address": addUser
+          "address": addUser,
+	  "used_coins":coins
         },
         success: function(data){
           console.log("ID sent!");
@@ -56,7 +63,7 @@ function done(){
 
 }
 
-var price, nameUser, phoneUser, addUser;
+var price, nameUser, phoneUser, addUser, remaining_coins;
 
 function amount(){
   $.ajax({
@@ -64,9 +71,12 @@ function amount(){
     url: redisDb+"/get_location_total/"+uid,
     success: function(data){
       data=JSON.parse(data);
+console.log(data);
       price=data["total"];
       console.log(price);
       document.getElementById('amt').innerHTML="&#8377;"+price;
+      document.getElementsByName('coins')[0].value=data['coins'];
+        //console.log("dcs"+remaining_coins);
     },
     error: function(data){
       console.log('Nope!');
@@ -82,11 +92,13 @@ function userData(){
       console.log(data);
       data=JSON.parse(data);
       document.getElementsByName('name')[0].value=data['name'];
-      //console.log(data['name']);
+      console.log("adas"+data['name']);
       if(data['number']!=undefined)
         document.getElementsByName('phone')[0].value=data['number'];
       if(data['address']!=undefined)
         document.getElementsByName('address')[0].value=data['address'];
+       // console.log(data['address']);
+        
     },
     error: function(data){
       console.log('Nope!');

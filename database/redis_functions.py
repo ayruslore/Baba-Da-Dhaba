@@ -30,6 +30,40 @@ class EnableCors(object):
 #-----------------------------------------
 command = "redis-cli "
 
+def set_coin(identity,coin):
+    set_hash_field("user:"+str(identity)+":coins","coins",str(coin))
+
+def settle_coins(identity,payamount):
+    cart = int(set_count("user:"+str(identity)+":confirmed_carts"))
+    print cart
+    print payamount
+    coin = get_coins(identity)
+    if(coin == {}):
+        coin = 0
+    else:
+        coin = int(coin["coins"])
+        print coin
+    if(cart > 0 and cart <=3):
+        if(cart == 1):
+            money = int(payamount*0.15) + 100
+            set_hash("user:"+str(identity)+":coins",{"type":"bronze","coins":str(money)})
+            return {"earned":int(payamount*0.15),"remain_coins":money,"type":"bronze"}
+        else:
+            money = int(payamount*0.15) + coin
+            set_hash("user:"+str(identity)+":coins",{"type":"bronze","coins":str(money)})
+            return {"earned":int(payamount*0.15),"remain_coins":money,"type":"bronze"}
+    elif(cart > 3 and cart < 11):
+        money = int(payamount*0.2) + coin
+        set_hash("user:"+str(identity)+":coins",{"type":"silver","coins":str(money)})
+        return {"earned":int(payamount*0.2),"remain_coins":money,"type":"silver"}
+    else:
+        money = int(payamount*0.25) + coin
+        set_hash("user:"+str(identity)+":coins",{"type":"gold","coins":str(money)})
+        return {"earned":int(payamount*0.25),"remain_coins":money,"type":"gold"}
+
+def get_coins(identity):
+    return get_hash("user:"+str(identity)+":coins")
+
 def get_time_stamp():
 	s = str(datetime.now())
 	s = s.split(' ')
@@ -64,7 +98,7 @@ def remlist(key,value):
     command = "redis-cli llen " + key
     le = commands.getouput(command)
     command = "redis-cli lrem " + key + " " + str(le) + " " + value
-    commands.getouput(command)
+    commands.getoutput(command)
 
 def set_hash(key,d):
 	command = "redis-cli  "

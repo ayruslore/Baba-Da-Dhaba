@@ -128,9 +128,10 @@ def get_cart_price(id):
 	key = get_cart_id(id)
 	cart = get_hash(key)
 	prices = {"oos":[]}
-	sell = upsell(cart,carthotel)
-	prices['cards'] = sell['cards']
-	prices['upsell'] = sell['upsell']
+	if(carthotel!='' or cart!={}):
+		sell = upsell(cart,carthotel)
+		prices['cards'] = sell['cards']
+		prices['upsell'] = sell['upsell']
 	total = 0
 	for item in cart:
 		if(dishes_db[dishes_db["name"]==item][carthotel].tolist()[0]=="In"):
@@ -152,6 +153,13 @@ def get_cart_price(id):
 		prices["flag"] = False
 	key = "rest_discount"
 	prices["discount"]=prices["total"]*int(get_key(key))/100
+	coin = get_coins(id)
+	if(coin == {}):
+		prices["coins"] = ["0"]
+		prices["type"] = "bronze"
+	else:
+		prices["coins"] = [str(coin["coins"])]
+		prices["type"] = coin['type']
 	print prices
 	return prices
 
@@ -344,7 +352,7 @@ def disc(num):
 	return "Success"
 
 @app.route('/cart/<identity>/confirm')
-def confirm10(identity):
+def confirm10(identity,details):
 	global orders_branch_Y
 	global orders_branch_O
 	global orders_branch_R
@@ -385,7 +393,7 @@ def confirm10(identity):
 	set_key(key,get_time_stamp())
 	set_hash_field("OrderId",str(orderId),str(identity))
 	rpushl("user:" + str(identity)+ ":orders", str(orderId))
-	data = {"id":str(orderId),"cart":order,"data":get_details(identity),"status":"pending"}
+	data = {"id":str(orderId),"cart":order,"data":details,"status":"pending"}
 	print (data)
 	if closest in "Residency_Road":
 		orders_branch_R[str(orderId)] = data
@@ -428,19 +436,8 @@ def confirm4(orderId):
 
 @app.route('/cart/<orderId>/reject')
 def confirm5(orderId):
-	delete_hash_field("OrderId",str(orderId))
-	remlist("user:" + str(identity)+ ":orders", str(orderId))
 	key = "user:"+str(orderId)+":cart_status"
 	set_key(key,"rejected")
-	if str(orderId) in orders_branch_O:
-		orders_branch_O[str(orderId)]['status'] = 'rejected'
-	elif str(orderId) in orders_branch_Y:
-		orders_branch_Y[str(orderId)]['status'] = 'rejected'
-	elif str(orderId) in orders_branch_R:
-		orders_branch_R[str(orderId)]['status'] = 'rejected'
-	elif str(orderId) in orders_branch_K:
-		orders_branch_K[str(orderId)]['status'] = 'rejected'
-	orders[str(orderId)]['status'] = 'rejected'
 	orders.pop(str(orderId),None)
 	orders_branch_O.pop(str(orderId),None)
 	orders_branch_Y.pop(str(orderId),None)
@@ -507,24 +504,22 @@ def confirm8(orderId):
 	key = "user:"+str(orderId)+":cart_status"
 	set_key(key,"delivered")
 	identity = get_hash_field("OrderId",str(orderId))
-	remlist("user:" + str(identity)+ ":orders", str(orderId))
-	delete_hash_field("OrderId",str(orderId))
 	key = "user:"+str(identity)+":assigned_rest"
 	closest = get_key(key)
 	key_increment_by(daily_confirmed_carts,1)
-	key_increment_by(daily_converted_value,orders['data']['total']-orders['data']['discount'])
+	key_increment_by(daily_converted_value,str(orders[str(orderId)]['data']['cart']['total']-orders[str(orderId)]['data']['cart']['discount']))
 	if closest in "Residency_Road":
 		key_increment_by(r_converted_carts,1)
-		key_increment_by(r_converted_value,orders['data']['total']-orders['data']['discount'])
+		key_increment_by(r_converted_value,str(orders[str(orderId)]['data']['cart']['total']-orders[str(orderId)]['data']['cart']['discount']))
 	elif closest in "Yelahanka":
 		key_increment_by(y_converted_carts,1)
-		key_increment_by(y_converted_value,orders['data']['total']-orders['data']['discount'])
+		key_increment_by(y_converted_value,str(orders[str(orderId)]['data']['cart']['total']-orders[str(orderId)]['data']['cart']['discount']))
 	elif closest in "Old_Airport_Road":
 		key_increment_by(o_converted_carts,1)
-		key_increment_by(o_converted_value,orders['data']['total']-orders['data']['discount'])
+		key_increment_by(o_converted_value,str(orders[str(orderId)]['data']['cart']['total']-orders[str(orderId)]['data']['cart']['discount']))
 	elif closest in "Koramangala":
 		key_increment_by(k_converted_carts,1)
-		key_increment_by(k_converted_value,orders['data']['total']-orders['data']['discount'])
+		key_increment_by(k_converted_value,str(orders[str(orderId)]['data']['cart']['total']-orders[str(orderId)]['data']['cart']['discount']))
 	orders.pop(str(orderId),None)
 	orders_branch_O.pop(str(orderId),None)
 	orders_branch_Y.pop(str(orderId),None)
@@ -550,6 +545,7 @@ def geniidata():
 @app.route('/cart/<identity>/status')
 def confirm3(identity):
 	orders = getlist("user:" + str(identity)+ ":orders")
+	print orders
 	result = {}
 	count = 0
 	if len(orders) != 0:
@@ -560,9 +556,12 @@ def confirm3(identity):
 			key = "user:"+str(x)+":cart_status"
 			if(key_exists(key)):
 				result[count]['status'] = get_key(key)
-				if(get_key(key)=='out_for_delivery' or get_key(key)=='delivered'):
+				if(result[count]['status']=='out_for_delivery' or result[count]['status']=='delivered'):
 					key = "user:"+str(x)+":dboy"
 					result[count]['dboy'] = get_key(key)
+				if(result[count]['status']=='delivered' or result[count]['status']=='rejected'):
+						remlist("user:" + str(identity)+ ":orders", str(x))
+						delete_hash_field("OrderId",str(x))
 		yield json.dumps(result)
 	else:
 		yield "Status not set"
@@ -639,6 +638,10 @@ def display():
 	global dishes_db
 	print dishes_db
 
+@app.route('/get_shut_hotels')
+def hotels():
+	global shutdown
+	return json.dumps(shutdown)
 
 @app.route('/add_dish/<d>')
 def add_dish(d):
@@ -683,80 +686,98 @@ def delete_dish(name):
 
 @app.route('/set_menu')
 def store_the_dishes():
-	temp =  {"Courses":{"Breakfast":{"P For Pakora Platter":
-["100","Veg","aloo"],"Fluffy Poori Allo":
-["115","Veg","aloo"],"Anda Aur Aloo Combo":
-["120","Veg","U"],"Power-up Combo":
-["120","Veg","U"],"Chole Wale Bhature":
-["120","Veg","chole"]},"New Launch":{"Punjabi Aloo Parantha Combo":
-["155","Veg","aloo"],"Punjabi Paneer Parantha Combo":
-["155","Veg","paneer"],"Aloo Matar":
-["155","Veg","aloo"],"Baigan Bhartha":
-["145","Veg","U"],"Punjabi Aloo Ka Parantha":
-["60","Veg","aloo"],"Punjabi Paneer Ka Parantha":
-["155","Veg","paneer"]},"Power Up Main Course":{"Pindi Chole":
-["115","Veg","pindi"],"Murgh Kali Mirch":
-["240","Non Veg","chicken"],"Paneer Makhanwala":
-["240","Veg","paneer"],"Paneer Lababdar":
-["240","Veg","paneer"],"Saagwala Paneer":
-["240","Veg","paneer"],"Subzi Meloni":
-["200","Veg","subzi"],"Dal Makhani":
-["160","Veg","dal"],"Dal Saath Salam":
-["115","Veg","dal"],"Chicken Lababdar":
-["280","Non Veg","chicken"],"Chicken Makhanwala":
-["260","Non Veg","chicken"],"Mutton Rogan Josh":
-["290","Non Veg","mutton"]},"Tank Up On Rice":{"Steamed Rice":
-["85","Veg","rice"],"Jeera Rice":
-["115","Veg","rice"],"Chicken Biryani":
-["250","Non Veg","rice"],"Mutton Biryani":
-["290","Non Veg","rice"]},"Piping Breads":{"Tandoori Roti":
-["22", "Veg","U"],"Naan":
-["25", "Veg","U"],"Onion Kulcha":
-["35","Veg","U"],"Wheat Tawa Roti":
-["17","Veg","U"]},"Riveting Desserts":{"Phirni":
-["90","Veg","U"],"Kheer":
-["90","Veg","U"],"B and W Chocolate Cake Eggless":
-["140","Veg","U"]},"Super Coolants":{"Shikanji":
-["30", "Veg","U"],"Masala Chaas":
-["40", "Veg","U"],"Lassi Sweet":
-["75","Veg","U"],"Lassi Salt":
-["75", "Veg","U"]},"Beverages":{"Water Bottle 500ml":
-["20","Veg","U"],"Water Bottle 1l":
-["40", "Veg","U"],"Soft Drink 250ml":
-["30", "Veg","U"], "Soft Drink 500ml":
-["44", "Veg","U"], "Diet Coke 330ml":
-["45", "Veg","U"]},"Top Gear Combos":{"Dilli Combo veg":
-["280","Veg","U"],"Amritsari Combo veg":
-["280","Veg","U"],"Lucknowi Combo veg":
-["280","Veg","U"],"Dilli Combo nonveg":
-["295","Non Veg","chicken"],"Amritsari Combo nonveg":
-["295","Non Veg","chicken"],"Kashmiri Combo nonveg":
-["360","Non Veg","chicken"],"Healthy Jalandhar Combo":
-["260","Veg","U"]},"Speedy Combos":{"Dilli Combo veg":
-["160","Veg","U"],"Lucknowi Combo veg":
-["160","Veg","U"],"Amritsari Combo veg":
-["160","Veg","U"],"Dal Makhni Combo":
-["99","Veg","dal"],"Dilli Combo nonveg":
-["160","Non Veg","chicken"],"Amritsari Combo nonveg":
-["160","Non Veg","chicken"],"Kashmiri Combo nonveg":
-["220","Non Veg","chicken"],"Pindi Chole Combo":
-["120","Veg","pindi"]},"Convertible Combos":{"Lucknowi Convertible Combo veg":
-["135","Veg","U"],"Amritsari Convertible Combo veg":
-["135","Veg","U"],"Dilli Convertible Combo veg":
-["150","Veg","U"],"Amritsari Convertible Combo nonveg":
-["145","Non Veg","chicken"],"Dilli Convertible Combo nonveg":
-["150","Non Veg","chicken"],"Kashmiri Convertible Combo nonveg":
-["170","Non Veg","mutton"]},"Full Throttle Starters":{"Chicken Tikka":
-["220", "Non Veg","chicken"],"Paneer Tikka":
-["210","Veg","paneer"],"Hariyali Chicken Kebab":
-["220","Non Veg","chicken"],"Malai Chicken Kebab":
-["240","Non Veg","chicken"],"Mutton Seekh Kebab":
-["260","Non Veg","mutton"],"Assorted Veg Tikkis":
-["195","Veg","U"]},"Blazing Rolls":{"Paneer Kathi Roll":
-["135","Veg","paneer"],"Chicken Kathi Roll":
-["160","Non Veg","chicken"],"Mutton Kathi Roll":
-["200","Non Veg","mutton"],"Prawn Roll":
-["200","Non Veg","prawn"]}}}
+	temp =  {"Courses":
+        {"Breakfast":
+            {"P For Pakora Platter":["100","Veg","aloo"],
+            "Fluffy Poori Allo":["115","Veg","aloo"],
+            "Anda Aur Aloo Combo":["120","Veg","U"],
+            "Power-up Combo":["120","Veg","U"],
+            "Chole Wale Bhature":["120","Veg","chole"]},
+        "New Launch":
+            {"Punjabi Aloo Parantha Combo":["155","Veg","aloo"],
+            "Punjabi Paneer Parantha Combo":["155","Veg","paneer"],
+            "Aloo Matar":["155","Veg","aloo"],
+            "Kastoori Paneer Tikka":["210","Non veg","paneer"],
+            "Batti Da Murgh":["240","Non veg","chicken"],
+            "Tandoori Jhinga":["310","Non veg","Prawn"],
+            "Tandoori Chicken":["260","Non veg","chicken"],
+            "Baigan Bhartha":["145","Veg","U"],
+            "Punjabi Aloo Ka Parantha":["60","Veg","aloo"],
+            "Punjabi Paneer Ka Parantha":["155","Veg","paneer"]},
+        "Power Up Main Course":
+            {"Pindi Chole":["115","Veg","pindi"],
+            "Murgh Kali Mirch":["240","Non Veg","chicken"],
+            "Paneer Makhanwala":["240","Veg","paneer"],
+            "Paneer Lababdar":["240","Veg","paneer"],
+            "Saagwala Paneer":["240","Veg","paneer"],
+            "Subzi Meloni":["200","Veg","subzi"],
+            "Dal Makhani":["160","Veg","dal"],
+            "Dal Saath Salam":["115","Veg","dal"],
+            "Chicken Lababdar":["280","Non Veg","chicken"],
+            "Chicken Makhanwala":["260","Non Veg","chicken"],
+            "Mutton Rogan Josh":["290","Non Veg","mutton"]},
+        "Tank Up On Rice":
+            {"Steamed Rice":["85","Veg","rice"],
+            "Jeera Rice":["115","Veg","rice"],
+            "Chicken Biryani":["250","Non Veg","rice"],
+            "Mutton Biryani":["290","Non Veg","rice"]},
+        "Piping Breads":
+            {"Tandoori Roti":["22", "Veg","U"],
+            "Naan":["25", "Veg","U"],
+            "Onion Kulcha":["35","Veg","U"],
+            "Wheat Tawa Roti":["17","Veg","U"]},
+        "Riveting Desserts":
+            {"Phirni":["90","Veg","U"],
+            "Kheer":["90","Veg","U"],
+            "B and W Chocolate Cake Eggless":["140","Veg","U"]},
+        "Super Coolants":
+            {"Shikanji":["30", "Veg","U"],
+            "Masala Chaas":["40", "Veg","U"],
+            "Lassi Sweet":["75","Veg","U"],
+            "Lassi Salt":["75", "Veg","U"]},
+        "Beverages":
+            {"Water Bottle 500ml":["20","Veg","U"],
+            "Water Bottle 1l":["40", "Veg","U"],
+            "Soft Drink 250ml":["30", "Veg","U"],
+            "Soft Drink 500ml":["44", "Veg","U"],
+            "Diet Coke 330ml":["45", "Veg","U"]},
+        "Top Gear Combos":
+            {"Dilli Combo veg":["280","Veg","U"],
+            "Amritsari Combo veg":["280","Veg","U"],
+            "Lucknowi Combo veg":["280","Veg","U"],
+            "Dilli Combo nonveg":["295","Non Veg","chicken"],
+            "Amritsari Combo nonveg":["295","Non Veg","chicken"],
+            "Kashmiri Combo nonveg":["360","Non Veg","chicken"],
+            "Healthy Jalandhar Combo":["260","Veg","U"]},
+        "Speedy Combos":
+            {"Dilli Mini Combo veg":["160","Veg","U"],
+            "Lucknowi Mini Combo veg":["160","Veg","U"],
+            "Amritsari Mini Combo veg":["160","Veg","U"],
+            "Dal Makhni Combo":["99","Veg","dal"],
+            "Dilli Combo Mini nonveg":["160","Non Veg","chicken"],
+            "Amritsari Mini Combo nonveg":["160","Non Veg","chicken"],
+            "Kashmiri Mini Combo nonveg":["220","Non Veg","chicken"],
+            "Pindi Chole Combo":["120","Veg","pindi"]},
+        "Convertible Combos":
+            {"Lucknowi Convertible Combo veg":["135","Veg","U"],
+            "Amritsari Convertible Combo veg":["135","Veg","U"],
+            "Dilli Convertible Combo veg":["150","Veg","U"],
+            "Amritsari Convertible Combo nonveg":["145","Non Veg","chicken"],
+            "Dilli Convertible Combo nonveg":["150","Non Veg","chicken"],
+            "Kashmiri Convertible Combo nonveg":["170","Non Veg","mutton"]},
+        "Full Throttle Starters":
+            {"Chicken Tikka":["220", "Non Veg","chicken"],
+            "Paneer Tikka":["210","Veg","paneer"],
+            "Hariyali Chicken Kebab":["220","Non Veg","chicken"],
+            "Malai Chicken Kebab":["240","Non Veg","chicken"],
+            "Mirchi Pakora":["100","Non veg","U"],
+            "Mutton Seekh Kebab":["260","Non Veg","mutton"],
+            "Assorted Veg Tikkis":["195","Veg","U"]},
+        "Blazing Rolls":
+            {"Paneer Kathi Roll":["135","Veg","paneer"],
+            "Chicken Kathi Roll":["160","Non Veg","chicken"],
+            "Mutton Kathi Roll":["200","Non Veg","mutton"],
+            "Prawn Roll":["200","Non Veg","prawn"]}}}
 	global dishes_db , dishes_dicti
 	dishes_db_new = {"name":[],"v_n":[],"base_ing":[],"course":[],"category":[],"count":[],"price":[],"stock":[],"link":[],"Old_Airport_Road":[],"Yelahanka":[],"Residency_Road":[],"Koramangala":[]}
 	for course in temp["Courses"]:
@@ -783,7 +804,7 @@ def store_the_dishes():
 			elif(course == "Riveting Desserts"):
 				dishes_db_new["category"].append("dessert")
 			elif(course == "Super Coolants"):
-				dishes_db_new["category"].append("beverage")
+				dishes_db_new["category"].append("coolants")
 			elif(course == "Beverages"):
 				dishes_db_new["category"].append("beverage")
 			elif(course == "Breakfast"):
@@ -860,9 +881,8 @@ def getcalls(key):
 
 @app.route('/use_saved/<identity>')
 def saved_address(identity):
-	set_key("user:" + str(identity) + ":cart:" + str(int(set_count("user:"+str(identity)+":confirmed_carts"))+1) + ":flag","0")
-	expire_key_in("user:" + str(identity) + ":cart:" + str(int(set_count("user:"+str(identity)+":confirmed_carts"))+1) + ":flag",3600)
-	return {"calls":get_key("user:"+str(identity)+":calls"),"tags":get_key("user:"+str(identity)+":call-tags")}
+	address = get_key("user:"+str(identity)+":cur_address")
+	return set_address(identity,address)
 
 @app.route('/<identity>/set_address/<address>')
 def set_address(identity,address):
@@ -933,7 +953,7 @@ def get_payment_status(pass_key):
 
 def get_cart_price1(id):
 	global dishes_db
-	key = "user:"+ str(id)+":cart:"+str(int(set_count("user:"+str(id)+":confirmed_carts")))
+	key = "user:"+ str(id)+":cart:"+str(int(set_count("user:"+str(id)+":confirmed_carts"))+1)
 	print(key)
 	cart = get_hash(key)
 	prices = {}
@@ -952,22 +972,37 @@ def get_cart_price1(id):
 	prices["discount"]=prices["total"]*int(get_key(key))/100
 	return prices
 
-@app.route('/get_new_receipt/<dic>')
-def get_new_reciept(dic):
-	data = json.loads(dic)
+'''{u'name': u'testing',
+ u'number': u'9886547444',
+  'cart': {'discount': 18,
+   			'kheer': (90, 2),
+			 'total': 180,
+			  'cart_id': '6637320881'},
+ u'address': u'17-14, Cunningham Rd, Vasanth Nagar, Bengaluru, Karnataka 560051, India',
+  'order_status': 'pending'}'''
+
+@app.route('/get_new_receipt/<data>')
+def get_new_reciept(data):
+	data = json.loads(data)
 	identity = data["Id"]
-	orderId = confirm10(identity)
-	lat_long = get_key("user:"+str(identity)+":cur_address")
-	lat_long = lat_long.split(",")
-	key = "user:" + str(identity) + ":details"
 	data.pop("Id",None)
+	key = "user:" + str(identity) + ":details"
 	data["address"] = data["address"].replace(" ","_")
 	data['name'] = data["name"].replace(" ","_")
 	set_hash(key,data)
-	#data['address'] = get_hash_field(key,"address").replace("_"," ")
-	#data['number'] = str(get_hash_field(key,"number")) #get_geocode(lat_long[0],lat_long[1])
 	total = get_cart_price1(identity)
+	orderId = confirm10(identity,data)
 	data['cart'] = total
+	coin = get_coins(identity)
+	payamount = total['total'] - total['discount'] - int(data['used_coins'])
+	if(coin == {}):
+		set_hash(identity,{"type":"bronze","coins":"0"})
+	else:
+		set_coin(identity,int(coin["coins"])-int(data['used_coins']))
+	settlement = settle_coins(identity,payamount)
+	data["remain_coins"] = settlement['remain_coins']
+	data['earned_coins'] = settlement['earned']
+	data['type'] = settlement['type']
 	data['cart']['cart_id'] = str(orderId)
 	data["address"] = data["address"].replace("_"," ")
 	data['name'] = data["name"].replace("_"," ")
@@ -976,7 +1011,7 @@ def get_new_reciept(dic):
 	data['order_status'] = get_key(key)
 	yield json.dumps(data)
 
-@app.route('/get_receipt/<identity>')
+'''@app.route('/get_receipt/<identity>')
 def get_reciept(identity):
 	data = {}
 	orderId = confirm10(identity)
@@ -990,7 +1025,7 @@ def get_reciept(identity):
 	data['name'] = get_hash_field(key,"name").replace("_"," ")
 	key = "user:"+str(orderId)+":cart_status"
 	data['order_status'] = get_key(key)
-	yield json.dumps(data)
+	yield json.dumps(data)'''
 
 @app.route('/read_orders')
 def read_orders():
@@ -1033,6 +1068,11 @@ def location(identity):
 	else:
 		data["address"] = ''
 	data["total"] = get_cart_price(identity)["total"]
+	coin = get_coins(identity)
+	if(coin == {}):
+		data["coins"] = 0
+	else:
+		data["coins"] = int(coin["coins"])
 	yield json.dumps(data)
 
 def get_geocode_address(address):
@@ -1065,7 +1105,7 @@ def get_user_def(identity):
 		result["address"] = result["address"].replace("_"," ")
 	yield json.dumps(result)
 
-def get_reciept1(identity):
+'''def get_reciept1(identity):
 	data = {}
 	orderId = confirm10(identity)
 	lat_long = get_key("user:"+str(identity)+":cur_address")
@@ -1095,7 +1135,7 @@ def set_confirm(identity,d):
 	orderId = confirm10(identity)
 	set_hash_field(key,"number",str(d["number"]))
 	set_hash_field(key,"address",d["address"].replace(" ","_"))
-	set_hash_field(key,"name",d["name"].replace(" ","_"))
+	set_hash_field(key,"name",d["name"].replace(" ","_"))'''
 
 @app.route('/refresh_stock')
 def refresh_stock():

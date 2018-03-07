@@ -32,7 +32,9 @@ def reco_filter1(v_n,base_ing,category,identity):
 	carthotel = get_key("user:" + str(identity) + ":assigned_rest")
 	locflag = locflaging(identity)
 	if carthotel in shutdown:
-		return json.dumps({"status":"shutdown","locflag":locflag})
+		delete_key("user:" + str(identity) + ":assigned_rest")
+		delete_key("user:" + str(identity) + ":cart:" + str(int(set_count("user:"+str(identity)+":confirmed_carts"))+1) + ":flag")
+		return json.dumps({"status":"shut_down","locflag":locflag})
 	if locflag == 0:
 		result = dishes_db[dishes_db[carthotel]=='In']
 		if v_n in ["veg","nonveg"]:
@@ -71,6 +73,8 @@ def special(identity):
 	carthotel = get_key("user:" + str(identity) + ":assigned_rest")
 	locflag = locflaging(identity)
 	if carthotel in shutdown:
+		delete_key("user:" + str(identity) + ":assigned_rest")
+		delete_key("user:" + str(identity) + ":cart:" + str(int(set_count("user:"+str(identity)+":confirmed_carts"))+1) + ":flag")
 		return json.dumps({"status":"shut_down","locflag":locflag})
 	if locflag == 0:
 		result = dishes_db[dishes_db[carthotel]=='In']
@@ -138,7 +142,7 @@ def locflaging(identity):
 			return 2
 
 global link
-link = "https://1971f758.ngrok.io"
+link = "http://35.154.196.70:7000"
 
 @app.route('/<identity>/get_history_reco')
 def get_recommend_dishes2(identity):
@@ -149,6 +153,8 @@ def get_recommend_dishes2(identity):
 	carthotel = get_key("user:" + str(identity) + ":assigned_rest")
 	locflag = locflaging(identity)
 	if carthotel in shutdown:
+		delete_key("user:" + str(identity) + ":assigned_rest")
+		delete_key("user:" + str(identity) + ":cart:" + str(int(set_count("user:"+str(identity)+":confirmed_carts"))+1) + ":flag")
 		return json.dumps({"status":"shut_down","locflag":locflag})
 	if(key_exists("user:"+str(identity)+":ordered_items") == False):
 		if locflag == 0:
@@ -240,7 +246,13 @@ def user_details(identity):
 				result["day_diff"] = int(d2 - d1)
 				result["time_diff"] = int(t2 - t1)
 			result["usual"] = get_price(sorted(get_usual(identity).items(),key = lambda x:x[1],reverse = True))
+			coin = get_coins(identity)
+			if(coin == {}):
+				result["coins"] = "0"
+			else:
+				result["coins"] = str(coin["coins"])
 		else:
+			result["coins"] = "0"
 			result["usual"] = "Nothing"
 		yield json.dumps(result)
 #Courses Category
@@ -256,80 +268,98 @@ def user_details(identity):
 
 @app.route('/set_menu')
 def store_the_dishes():
-	temp =  {"Courses":{"Breakfast":{"P For Pakora Platter":
-["100","Veg","aloo"],"Fluffy Poori Allo":
-["115","Veg","aloo"],"Anda Aur Aloo Combo":
-["120","Veg","U"],"Power-up Combo":
-["120","Veg","U"],"Chole Wale Bhature":
-["120","Veg","chole"]},"New Launch":{"Punjabi Aloo Parantha Combo":
-["155","Veg","aloo"],"Punjabi Paneer Parantha Combo":
-["155","Veg","paneer"],"Aloo Matar":
-["155","Veg","aloo"],"Baigan Bhartha":
-["145","Veg","U"],"Punjabi Aloo Ka Parantha":
-["60","Veg","aloo"],"Punjabi Paneer Ka Parantha":
-["155","Veg","paneer"]},"Power Up Main Course":{"Pindi Chole":
-["115","Veg","pindi"],"Murgh Kali Mirch":
-["240","Non Veg","chicken"],"Paneer Makhanwala":
-["240","Veg","paneer"],"Paneer Lababdar":
-["240","Veg","paneer"],"Saagwala Paneer":
-["240","Veg","paneer"],"Subzi Meloni":
-["200","Veg","subzi"],"Dal Makhani":
-["160","Veg","dal"],"Dal Saath Salam":
-["115","Veg","dal"],"Chicken Lababdar":
-["280","Non Veg","chicken"],"Chicken Makhanwala":
-["260","Non Veg","chicken"],"Mutton Rogan Josh":
-["290","Non Veg","mutton"]},"Tank Up On Rice":{"Steamed Rice":
-["85","Veg","rice"],"Jeera Rice":
-["115","Veg","rice"],"Chicken Biryani":
-["250","Non Veg","rice"],"Mutton Biryani":
-["290","Non Veg","rice"]},"Piping Breads":{"Tandoori Roti":
-["22", "Veg","U"],"Naan":
-["25", "Veg","U"],"Onion Kulcha":
-["35","Veg","U"],"Wheat Tawa Roti":
-["17","Veg","U"]},"Riveting Desserts":{"Phirni":
-["90","Veg","U"],"Kheer":
-["90","Veg","U"],"B&W Chocolate Cake Eggless":
-["140","Veg","U"]},"Super Coolants":{"Shikanji":
-["30", "Veg","U"],"Masala Chaas":
-["40", "Veg","U"],"Lassi Sweet":
-["75","Veg","U"],"Lassi Salt":
-["75", "Veg","U"]},"Beverages":{"Water Bottle 500ml":
-["20","Veg","U"],"Water Bottle 1l":
-["40", "Veg","U"],"Soft Drink 250ml":
-["30", "Veg","U"], "Soft Drink 500ml":
-["44", "Veg","U"], "Diet Coke 330ml":
-["45", "Veg","U"]},"Top Gear Combos":{"Dilli Combo veg":
-["280","Veg","U"],"Amritsari Combo veg":
-["280","Veg","U"],"Lucknowi Combo veg":
-["280","Veg","U"],"Dilli Combo nonveg":
-["295","Non Veg","chicken"],"Amritsari Combo nonveg":
-["295","Non Veg","chicken"],"Kashmiri Combo nonveg":
-["360","Non Veg","chicken"],"Healthy Jalandhar Combo":
-["260","Veg","U"]},"Speedy Combos":{"Dilli Combo veg":
-["160","Veg","U"],"Lucknowi Combo veg":
-["160","Veg","U"],"Amritsari Combo veg":
-["160","Veg","U"],"Dal Makhni Combo":
-["99","Veg","dal"],"Dilli Combo nonveg":
-["160","Non Veg","chicken"],"Amritsari Combo nonveg":
-["160","Non Veg","chicken"],"Kashmiri Combo nonveg":
-["220","Non Veg","chicken"],"Pindi Chole Combo":
-["120","Veg","pindi"]},"Convertible Combos":{"Lucknowi Convertible Combo veg":
-["135","Veg","U"],"Amritsari Convertible Combo veg":
-["135","Veg","U"],"Dilli Convertible Combo veg":
-["150","Veg","U"],"Amritsari Convertible Combo nonveg":
-["145","Non Veg","chicken"],"Dilli Convertible Combo nonveg":
-["150","Non Veg","chicken"],"Kashmiri Convertible Combo nonveg":
-["170","Non Veg","mutton"]},"Full Throttle Starters":{"Chicken Tikka":
-["220", "Non Veg","chicken"],"Paneer Tikka":
-["210","Veg","paneer"],"Hariyali Chicken Kebab":
-["220","Non Veg","chicken"],"Malai Chicken Kebab":
-["240","Non Veg","chicken"],"Mutton Seekh Kebab":
-["260","Non Veg","mutton"],"Assorted Veg Tikkis":
-["195","Veg","U"]},"Blazing Rolls":{"Paneer Kathi Roll":
-["135","Veg","paneer"],"Chicken Kathi Roll":
-["160","Non Veg","chicken"],"Mutton Kathi Roll":
-["200","Non Veg","mutton"],"Prawn Roll":
-["200","Non Veg","prawn"]}}}
+	temp =  {"Courses":
+        {"Breakfast":
+            {"P For Pakora Platter":["100","Veg","aloo"],
+            "Fluffy Poori Allo":["115","Veg","aloo"],
+            "Anda Aur Aloo Combo":["120","Veg","U"],
+            "Power-up Combo":["120","Veg","U"],
+            "Chole Wale Bhature":["120","Veg","chole"]},
+        "New Launch":
+            {"Punjabi Aloo Parantha Combo":["155","Veg","aloo"],
+            "Punjabi Paneer Parantha Combo":["155","Veg","paneer"],
+            "Aloo Matar":["155","Veg","aloo"],
+            "Kastoori Paneer Tikka":["210","Non veg","paneer"],
+            "Batti Da Murgh":["240","Non veg","chicken"],
+            "Tandoori Jhinga":["310","Non veg","Prawn"],
+            "Tandoori Chicken":["260","Non veg","chicken"],
+            "Baigan Bhartha":["145","Veg","U"],
+            "Punjabi Aloo Ka Parantha":["60","Veg","aloo"],
+            "Punjabi Paneer Ka Parantha":["155","Veg","paneer"]},
+        "Power Up Main Course":
+            {"Pindi Chole":["115","Veg","pindi"],
+            "Murgh Kali Mirch":["240","Non Veg","chicken"],
+            "Paneer Makhanwala":["240","Veg","paneer"],
+            "Paneer Lababdar":["240","Veg","paneer"],
+            "Saagwala Paneer":["240","Veg","paneer"],
+            "Subzi Meloni":["200","Veg","subzi"],
+            "Dal Makhani":["160","Veg","dal"],
+            "Dal Saath Salam":["115","Veg","dal"],
+            "Chicken Lababdar":["280","Non Veg","chicken"],
+            "Chicken Makhanwala":["260","Non Veg","chicken"],
+            "Mutton Rogan Josh":["290","Non Veg","mutton"]},
+        "Tank Up On Rice":
+            {"Steamed Rice":["85","Veg","rice"],
+            "Jeera Rice":["115","Veg","rice"],
+            "Chicken Biryani":["250","Non Veg","rice"],
+            "Mutton Biryani":["290","Non Veg","rice"]},
+        "Piping Breads":
+            {"Tandoori Roti":["22", "Veg","U"],
+            "Naan":["25", "Veg","U"],
+            "Onion Kulcha":["35","Veg","U"],
+            "Wheat Tawa Roti":["17","Veg","U"]},
+        "Riveting Desserts":
+            {"Phirni":["90","Veg","U"],
+            "Kheer":["90","Veg","U"],
+            "B and W Chocolate Cake Eggless":["140","Veg","U"]},
+        "Super Coolants":
+            {"Shikanji":["30", "Veg","U"],
+            "Masala Chaas":["40", "Veg","U"],
+            "Lassi Sweet":["75","Veg","U"],
+            "Lassi Salt":["75", "Veg","U"]},
+        "Beverages":
+            {"Water Bottle 500ml":["20","Veg","U"],
+            "Water Bottle 1l":["40", "Veg","U"],
+            "Soft Drink 250ml":["30", "Veg","U"],
+            "Soft Drink 500ml":["44", "Veg","U"],
+            "Diet Coke 330ml":["45", "Veg","U"]},
+        "Top Gear Combos":
+            {"Dilli Combo veg":["280","Veg","U"],
+            "Amritsari Combo veg":["280","Veg","U"],
+            "Lucknowi Combo veg":["280","Veg","U"],
+            "Dilli Combo nonveg":["295","Non Veg","chicken"],
+            "Amritsari Combo nonveg":["295","Non Veg","chicken"],
+            "Kashmiri Combo nonveg":["360","Non Veg","chicken"],
+            "Healthy Jalandhar Combo":["260","Veg","U"]},
+        "Speedy Combos":
+            {"Dilli Mini Combo veg":["160","Veg","U"],
+            "Lucknowi Mini Combo veg":["160","Veg","U"],
+            "Amritsari Mini Combo veg":["160","Veg","U"],
+            "Dal Makhni Combo":["99","Veg","dal"],
+            "Dilli Combo Mini nonveg":["160","Non Veg","chicken"],
+            "Amritsari Mini Combo nonveg":["160","Non Veg","chicken"],
+            "Kashmiri Mini Combo nonveg":["220","Non Veg","chicken"],
+            "Pindi Chole Combo":["120","Veg","pindi"]},
+        "Convertible Combos":
+            {"Lucknowi Convertible Combo veg":["135","Veg","U"],
+            "Amritsari Convertible Combo veg":["135","Veg","U"],
+            "Dilli Convertible Combo veg":["150","Veg","U"],
+            "Amritsari Convertible Combo nonveg":["145","Non Veg","chicken"],
+            "Dilli Convertible Combo nonveg":["150","Non Veg","chicken"],
+            "Kashmiri Convertible Combo nonveg":["170","Non Veg","mutton"]},
+        "Full Throttle Starters":
+            {"Chicken Tikka":["220", "Non Veg","chicken"],
+            "Paneer Tikka":["210","Veg","paneer"],
+            "Hariyali Chicken Kebab":["220","Non Veg","chicken"],
+            "Malai Chicken Kebab":["240","Non Veg","chicken"],
+            "Mirchi Pakora":["100","Non veg","U"],
+            "Mutton Seekh Kebab":["260","Non Veg","mutton"],
+            "Assorted Veg Tikkis":["195","Veg","U"]},
+        "Blazing Rolls":
+            {"Paneer Kathi Roll":["135","Veg","paneer"],
+            "Chicken Kathi Roll":["160","Non Veg","chicken"],
+            "Mutton Kathi Roll":["200","Non Veg","mutton"],
+            "Prawn Roll":["200","Non Veg","prawn"]}}}
 	global dishes_db , dishes_dicti
 	dishes_db_new = {"name":[],"v_n":[],"base_ing":[],"course":[],"category":[],"count":[],"price":[],"link":[],"stock":[],"Yelahanka":[],"Koramangala":[],"Old_Airport_Road":[],"Residency_Road":[]}
 	for course in temp["Courses"]:
@@ -356,14 +386,13 @@ def store_the_dishes():
 			elif(course == "Riveting Desserts"):
 				dishes_db_new["category"].append("dessert")
 			elif(course == "Super Coolants"):
-				dishes_db_new["category"].append("beverage")
+				dishes_db_new["category"].append("coolants")
 			elif(course == "Beverages"):
 				dishes_db_new["category"].append("beverage")
 			elif(course == "Breakfast"):
 				dishes_db_new["category"].append("breakfast")
 			else:
 				dishes_db_new["category"].append("HERO")
-
 			dishes_db_new["name"].append(dish.replace(" ","_").lower().replace("(","").replace(")",""))
 			dishes_db_new["stock"].append("In")
 			dishes_db_new["Yelahanka"].append("In")
@@ -402,6 +431,11 @@ def store_the_dishes():
 	with open('dishes15.txt','w') as outfile:
 		json.dump(xyz, outfile)
 	#print(dishes_db)
+
+@app.route('/get_shut_hotels')
+def hotels():
+	global shutdown
+	return json.dumps(shutdown)
 
 @app.route('/get_logged_msg')
 def get_messages():
